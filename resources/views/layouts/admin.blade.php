@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
+    <head>
+        @include('partials.head')
+    </head>
+    <body class="min-h-screen bg-white dark:bg-zinc-800">
+        <flux:sidebar sticky collapsible="mobile" class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
+            <flux:sidebar.header>
+                <x-app-logo :sidebar="true" href="{{ route('admin.dashboard') }}" wire:navigate />
+                <flux:sidebar.collapse class="lg:hidden" />
+            </flux:sidebar.header>
+
+            <flux:sidebar.nav>
+                <flux:sidebar.group :heading="__('Admin')" class="grid">
+                    <x-menu.sidebar :menu="Spatie\Menu\Laravel\Menu::admin()" />
+                </flux:sidebar.group>
+            </flux:sidebar.nav>
+
+            <flux:spacer />
+
+            <flux:sidebar.nav>
+                <flux:sidebar.item icon="globe-alt" :href="route('home')">
+                    {{ __('View website') }}
+                </flux:sidebar.item>
+            </flux:sidebar.nav>
+
+            <x-desktop-user-menu class="hidden lg:block" :showTeam="false" />
+        </flux:sidebar>
+
+        <flux:header class="lg:hidden">
+            <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
+
+            <flux:spacer />
+
+            <x-desktop-user-menu :showTeam="false" />
+        </flux:header>
+
+        {{-- Pages that mark themselves data-full-bleed (the brick editor) manage their own spacing. --}}
+        <flux:main class="has-[[data-full-bleed]]:p-0!">
+            {{ $slot }}
+        </flux:main>
+
+        @persist('toast')
+            <flux:toast.group>
+                <flux:toast />
+            </flux:toast.group>
+        @endpersist
+
+        @fluxScripts
+    </body>
+</html>
