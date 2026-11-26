@@ -186,9 +186,9 @@ new #[Layout('layouts::admin'), Title('Settings')] class extends Component
     protected function regenerateAppIcons(): void
     {
         $directory = app(PwaSettings::class)->icon_directory;
-        $sourcePath = "{$directory}/".GenerateAppIcons::SourceFileName;
+        $sourcePath = filled($directory) ? GenerateAppIcons::sourcePath($directory) : null;
 
-        if (blank($directory) || ! Storage::disk('public')->exists($sourcePath)) {
+        if ($sourcePath === null) {
             return;
         }
 

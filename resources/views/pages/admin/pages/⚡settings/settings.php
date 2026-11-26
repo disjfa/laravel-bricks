@@ -3,6 +3,7 @@
 use App\Livewire\Concerns\EditsSeo;
 use App\Livewire\Forms\PublishingForm;
 use App\Models\Page;
+use App\Rules\Slug;
 use Flux\Flux;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -42,11 +43,9 @@ new #[Layout('layouts::admin')] class extends Component
                 'required',
                 'string',
                 'max:255',
-                'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
+                new Slug,
                 Rule::unique('pages', 'slug')->ignore($this->page),
             ],
-        ], [
-            'slug.regex' => __('The slug may only contain lowercase letters, numbers and dashes.'),
         ]);
 
         $this->page->update([

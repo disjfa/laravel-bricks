@@ -36,6 +36,9 @@ class GenerateAppIcons
 
     public const array FaviconSizes = [16, 32];
 
+    /**
+     * The original upload is kept as source.{extension}, to generate the icons again when the background changes.
+     */
     public const string SourceFileName = 'source';
 
     /**
@@ -52,17 +55,17 @@ class GenerateAppIcons
         $disk = Storage::disk('public');
         $disk->makeDirectory($directory);
 
-        // The original, to generate the icons again when the background color changes.
-        $disk->putFileAs($directory, new File($sourcePath), self::SourceFileName);
+        $source = new File($sourcePath);
+        $disk->putFileAs($directory, $source, self::SourceFileName.'.'.($source->guessExtension() ?? 'png'));
 
         foreach (self::IconSizes as $size) {
-            Image::load($sourcePath)
+            $this->load($sourcePath)
                 ->fit(Fit::Crop, $size, $size)
                 ->save($disk->path("{$directory}/icon-{$size}.png"));
         }
 
         foreach (self::FaviconSizes as $size) {
-            Image::load($sourcePath)
+            $this->load($sourcePath)
                 ->fit(Fit::Crop, $size, $size)
                 ->save($disk->path("{$directory}/favicon-{$size}.png"));
         }
@@ -70,19 +73,37 @@ class GenerateAppIcons
         foreach (self::MaskableSizes as $size) {
             $innerSize = (int) round($size * self::MaskableSafeZone);
 
-            Image::load($sourcePath)
+            $this->load($sourcePath)
                 ->fit(Fit::Crop, $innerSize, $innerSize)
                 ->resizeCanvas($size, $size, AlignPosition::Center, false, $backgroundColor)
                 ->save($disk->path("{$directory}/maskable-{$size}.png"));
         }
 
         foreach (self::AppleSizes as $size) {
-            Image::load($sourcePath)
+            $this->load($sourcePath)
                 ->fit(Fit::Crop, $size, $size)
                 ->background($backgroundColor)
                 ->save($disk->path("{$directory}/apple-touch-icon-{$size}.png"));
         }
 
         return $directory;
+    }
+
+    /**
+     * The original upload in a directory of icons on the public disk, or null when it is not there.
+     */
+    public static function sourcePath(string $directory): ?string
+    {
+        return collect(Storage::disk('public')->files($directory))
+            ->first(fn (string $path) => str_starts_with(basename($path), self::SourceFileName.'.'));
+    }
+
+    /**
+     * Use the image driver of the media library (GD by default) instead of the one Image::load() picks, which is
+     * ImageMagick when it is installed. ImageMagick fails with "time limit exceeded" in long-running processes.
+     */
+    protected function load(string $path): Image
+    {
+        return Image::useImageDriver(config('media-library.image_driver', 'gd'))->loadFile($path);
     }
 }

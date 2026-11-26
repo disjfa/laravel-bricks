@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Menu;
+use App\Rules\Slug;
 use Flux\Flux;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\Rule;
@@ -20,9 +21,7 @@ new #[Layout('layouts::admin'), Title('Menus')] class extends Component {
 
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
-            'handle' => ['required', 'string', 'max:64', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', Rule::unique('menus', 'handle')],
-        ], [
-            'handle.regex' => __('The handle may only contain lowercase letters, numbers and dashes.'),
+            'handle' => ['required', 'string', 'max:64', new Slug, Rule::unique('menus', 'handle')],
         ]);
 
         $menu = Menu::query()->create($validated);

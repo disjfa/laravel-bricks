@@ -5,6 +5,8 @@ use App\Models\Blog;
 use App\Models\Menu;
 use App\Models\MenuItem;
 use App\Models\Page;
+use App\Rules\LinkUrl;
+use App\Rules\Slug;
 use Flux\Flux;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -119,16 +121,14 @@ new #[Layout('layouts::admin')] class extends Component
 
         $this->validate([
             'name' => ['required', 'string', 'max:255'],
-            'handle' => ['required', 'string', 'max:64', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', Rule::unique('menus', 'handle')->ignore($this->menu)],
+            'handle' => ['required', 'string', 'max:64', new Slug, Rule::unique('menus', 'handle')->ignore($this->menu)],
             'items' => ['array', 'max:50'],
             'items.*.label' => ['required', 'string', 'max:255'],
             'items.*.type' => ['required', Rule::enum(MenuItemType::class)],
             'items.*.page_id' => ['nullable', 'required_if:items.*.type,'.MenuItemType::Page->value, Rule::exists('pages', 'id')],
             'items.*.blog_id' => ['nullable', 'required_if:items.*.type,'.MenuItemType::Blog->value, Rule::exists('blogs', 'id')],
-            // Relative links, anchors, mail links or http(s) URLs, which keeps `javascript:` URLs out of the menu.
-            'items.*.url' => ['nullable', 'required_if:items.*.type,'.MenuItemType::Url->value, 'string', 'max:2048', 'regex:/^(\/|#|https?:\/\/|mailto:)/i'],
+            'items.*.url' => ['nullable', 'required_if:items.*.type,'.MenuItemType::Url->value, 'string', 'max:2048', new LinkUrl],
         ], [
-            'handle.regex' => __('The handle may only contain lowercase letters, numbers and dashes.'),
             'items.*.page_id.required_if' => __('Pick a page.'),
             'items.*.blog_id.required_if' => __('Pick a blog.'),
             'items.*.url.required_if' => __('Enter a link.'),
