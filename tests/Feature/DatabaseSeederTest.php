@@ -15,6 +15,7 @@ it('seeds an admin, regular users, demo pages, blogs, a contact form and the mai
         ->and(User::role(UserRole::User)->count())->toBe(21)
         ->and(Page::published()->pluck('slug')->sort()->values()->all())->toBe(['about', 'blog', 'contact', 'home'])
         ->and(Blog::published()->count())->toBe(8)
+        ->and(Blog::published()->whereHas('tags')->count())->toBe(8)
         ->and(Form::firstWhere('name', 'Contact')->fields)->toHaveCount(3)
         ->and(Menu::visibleItems(Menu::MainHandle)->pluck('label')->all())->toBe(['Home', 'About', 'Blog', 'Contact']);
 });

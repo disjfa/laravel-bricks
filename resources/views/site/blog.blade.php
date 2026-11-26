@@ -16,6 +16,8 @@
             @if (filled($blog->excerpt))
                 <p class="text-xl text-pretty text-zinc-600 dark:text-zinc-300">{{ $blog->excerpt }}</p>
             @endif
+
+            @include('site.partials.blog-tags', ['blog' => $blog])
         </header>
 
         @if (filled($imageUrl = $blog->image_url))

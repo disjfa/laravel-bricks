@@ -21,6 +21,22 @@
             </flux:card>
 
             <flux:card class="space-y-6">
+                <flux:heading size="lg">{{ __('Categories and tags') }}</flux:heading>
+
+                <flux:checkbox.group wire:model="categories" :label="__('Categories')" data-test="blog-categories">
+                    @forelse ($this->allCategories as $category)
+                        <flux:checkbox :value="(string) $category->id" :label="$category->name" />
+                    @empty
+                        <flux:text size="sm">{{ __('No categories yet, add the first one below.') }}</flux:text>
+                    @endforelse
+                </flux:checkbox.group>
+
+                <flux:input wire:model="newCategory" :label="__('New category')" :description:trailing="__('Added to this blog when you save.')" />
+
+                <flux:input wire:model="tags" :label="__('Tags')" :placeholder="__('laravel, livewire, cms')" :description:trailing="__('Separate tags with commas. New tags are made when you save.')" />
+            </flux:card>
+
+            <flux:card class="space-y-6">
                 <div>
                     <flux:heading size="lg">{{ __('SEO') }}</flux:heading>
                     <flux:text class="mt-1">{{ __('What search engines and social media show. Empty fields use the defaults from the site settings.') }}</flux:text>

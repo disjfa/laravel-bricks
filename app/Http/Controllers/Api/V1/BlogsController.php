@@ -22,12 +22,14 @@ class BlogsController extends ApiController
     #[QueryParameter('filter[search]', description: 'Search in the title and slug.', type: 'string')]
     #[QueryParameter('filter[title]', description: 'Part of the title.', type: 'string')]
     #[QueryParameter('filter[slug]', description: 'The exact slug.', type: 'string')]
+    #[QueryParameter('filter[category]', description: 'The slug of a category, more separated by commas.', type: 'string')]
+    #[QueryParameter('filter[tag]', description: 'The slug of a tag, more separated by commas.', type: 'string')]
     #[QueryParameter('sort', description: 'One of published_at, seqnr, title, slug, created_at, updated_at. Prefix with - for descending.', type: 'string', default: '-published_at')]
     #[QueryParameter('include', description: 'Add "bricks" to include the bricks of every blog.', type: 'string')]
     #[QueryParameter('per_page', description: 'Blogs per page, at most 100.', type: 'int', default: 15)]
     public function index(Request $request): AnonymousResourceCollection
     {
-        $blogs = BlogQuery::for(Blog::query()->published())
+        $blogs = BlogQuery::for(Blog::query()->published()->with('tags'))
             ->paginate($this->perPage($request))
             ->withQueryString();
 
@@ -41,6 +43,6 @@ class BlogsController extends ApiController
     {
         $blog = Blog::query()->published()->where('slug', $slug)->firstOrFail();
 
-        return new BlogResource($blog->load('bricks'));
+        return new BlogResource($blog->load(['bricks', 'tags']));
     }
 }

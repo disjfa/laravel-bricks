@@ -20,9 +20,14 @@ Route::get('/', [PagesController::class, 'home'])->name('home');
 
 Route::get('manifest.webmanifest', ManifestController::class)->name('manifest');
 
-Route::get('blog/{blog:slug}', [BlogsController::class, 'show'])
+Route::prefix('blog')
+    ->name('blogs.')
     ->middleware(EnsureFeaturesAreActive::using(Blogs::class))
-    ->name('blogs.show');
+    ->group(function () {
+        Route::get('category/{slug}', [BlogsController::class, 'category'])->name('category');
+        Route::get('tag/{slug}', [BlogsController::class, 'tag'])->name('tag');
+        Route::get('{blog:slug}', [BlogsController::class, 'show'])->name('show');
+    });
 
 Route::prefix('admin')
     ->name('admin.')

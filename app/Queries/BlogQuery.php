@@ -2,7 +2,10 @@
 
 namespace App\Queries;
 
+use App\Enums\BlogTagType;
+use Illuminate\Database\Eloquent\Builder;
 use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\Tags\Tag;
 
 class BlogQuery extends ModelQuery
 {
@@ -13,6 +16,8 @@ class BlogQuery extends ModelQuery
             AllowedFilter::partial('title'),
             AllowedFilter::exact('slug'),
             AllowedFilter::exact('status'),
+            self::tagFilter(BlogTagType::Category),
+            self::tagFilter(BlogTagType::Tag),
         ];
     }
 
@@ -29,5 +34,17 @@ class BlogQuery extends ModelQuery
     protected function includes(): array
     {
         return ['bricks'];
+    }
+
+    /**
+     * ?filter[category]=news or ?filter[tag]=laravel, by slug. More slugs, separated by commas, match any of them.
+     */
+    protected static function tagFilter(BlogTagType $type): AllowedFilter
+    {
+        return AllowedFilter::callback($type->value, function (Builder $query, mixed $value) use ($type): void {
+            $query->whereHas('tags', fn (Builder $tags) => $tags
+                ->where('type', $type->value)
+                ->whereIn('slug->'.Tag::getLocale(), (array) $value));
+        });
     }
 }

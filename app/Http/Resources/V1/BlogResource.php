@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\V1;
 
+use App\Enums\BlogTagType;
 use App\Models\Blog;
 use App\Models\Brick;
 use Illuminate\Http\Request;
@@ -24,6 +25,8 @@ class BlogResource extends JsonResource
             'url' => $this->url(),
             'excerpt' => $this->excerpt,
             'image' => filled($this->image_url) ? url($this->image_url) : null,
+            'categories' => TagResource::collection($this->tagsOfType(BlogTagType::Category)),
+            'tags' => TagResource::collection($this->tagsOfType(BlogTagType::Tag)),
             'seo' => [
                 'title' => $this->seoTitle(),
                 'description' => $this->seoDescription(),

@@ -6,6 +6,7 @@ use App\Bricks\Brickable;
 use App\Concerns\HasBricks;
 use App\Concerns\HasPublishing;
 use App\Concerns\HasSeo;
+use App\Enums\BlogTagType;
 use App\Enums\PublishStatus;
 use App\Settings\SeoSettings;
 use Carbon\CarbonInterface;
@@ -20,9 +21,12 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
+use Spatie\Tags\HasTags;
+use Spatie\Tags\Tag;
 
 /**
- * A blog is built from bricks like a page and is shown at /blog/{slug}.
+ * A blog is built from bricks like a page and is shown at /blog/{slug}. It has categories and tags
+ * (spatie/laravel-tags, see BlogTagType).
  *
  * @property int $id
  * @property string $title
@@ -41,6 +45,7 @@ use Spatie\Sluggable\SlugOptions;
  * @property Carbon|null $updated_at
  * @property-read Collection<int, Brick> $bricks
  * @property-read Collection<int, Media> $media
+ * @property-read Collection<int, Tag> $tags
  */
 #[Fillable(['title', 'slug', 'excerpt', 'image_url', 'meta_title', 'meta_description', 'meta_image', 'noindex', 'status', 'published_at', 'published_until', 'seqnr'])]
 class Blog extends Model implements Brickable
@@ -53,6 +58,7 @@ class Blog extends Model implements Brickable
     use HasPublishing;
     use HasSeo;
     use HasSlug;
+    use HasTags;
     use InteractsWithMedia;
 
     public function registerMediaCollections(): void
@@ -117,5 +123,18 @@ class Blog extends Model implements Brickable
     protected function seoType(): string
     {
         return 'article';
+    }
+
+    /**
+     * The categories or the tags of the blog, sorted by name.
+     *
+     * @return Collection<int, Tag>
+     */
+    public function tagsOfType(BlogTagType $type): Collection
+    {
+        return $this->tagsWithType($type->value)
+            ->whereInstanceOf(Tag::class)
+            ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
+            ->values();
     }
 }

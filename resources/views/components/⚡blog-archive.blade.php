@@ -24,10 +24,17 @@ new class extends Component {
     #[Locked]
     public string $sort = 'newest';
 
-    public function mount(int $perPage = 6, string $sort = 'newest'): void
+    /**
+     * Only the blogs with this category or tag (spatie/laravel-tags), or all blogs.
+     */
+    #[Locked]
+    public ?int $tagId = null;
+
+    public function mount(int $perPage = 6, string $sort = 'newest', ?int $tagId = null): void
     {
         $this->perPage = max(1, min($perPage, 48));
         $this->sort = $sort === 'sequence' ? 'sequence' : 'newest';
+        $this->tagId = $tagId;
     }
 
     /**
@@ -39,6 +46,7 @@ new class extends Component {
         return Blog::query()
             ->published()
             ->when(Feature::inactive(Blogs::class), fn ($query) => $query->whereRaw('1 = 0'))
+            ->when($this->tagId, fn ($query, int $tagId) => $query->whereHas('tags', fn ($tags) => $tags->whereKey($tagId)))
             ->when(
                 $this->sort === 'sequence',
                 fn ($query) => $query->ordered(),
