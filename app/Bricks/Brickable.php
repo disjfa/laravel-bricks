@@ -3,6 +3,7 @@
 namespace App\Bricks;
 
 use App\Models\Brick;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Spatie\MediaLibrary\HasMedia;
 
@@ -15,7 +16,7 @@ interface Brickable extends HasMedia
     public const string MediaCollection = 'media';
 
     /**
-     * @return MorphMany<Brick, $this>
+     * @return MorphMany<Brick, covariant Model>
      */
     public function bricks(): MorphMany;
 

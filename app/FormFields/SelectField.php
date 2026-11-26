@@ -49,7 +49,7 @@ class SelectField extends BaseFormField
      */
     public function options(array $settings): array
     {
-        return collect(preg_split('/\R/', (string) ($settings['options'] ?? '')))
+        return collect(preg_split('/\R/', (string) ($settings['options'] ?? '')) ?: [])
             ->map(fn (string $option) => trim($option))
             ->filter()
             ->unique()

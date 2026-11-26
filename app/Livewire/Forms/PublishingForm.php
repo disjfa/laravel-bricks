@@ -2,15 +2,15 @@
 
 namespace App\Livewire\Forms;
 
-use App\Concerns\PublishedTrait;
 use App\Enums\PublishStatus;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Blog;
+use App\Models\Page;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 use Livewire\Form;
 
 /**
- * The publishing fields of a model that uses PublishedTrait, shared by the page and blog editors.
+ * The publishing fields of a model that uses App\Concerns\PublishedTrait, shared by the page and blog editors.
  * Render it with <x-admin.publishing-fields />.
  */
 class PublishingForm extends Form
@@ -28,10 +28,7 @@ class PublishingForm extends Form
 
     public int|string $seqnr = 0;
 
-    /**
-     * @param  Model&PublishedTrait  $model
-     */
-    public function fillFromModel(Model $model): void
+    public function fillFromModel(Page|Blog $model): void
     {
         $this->status = ($model->status ?? PublishStatus::Concept)->value;
         $this->publishedAt = $model->published_at?->format(self::DateFormat) ?? '';

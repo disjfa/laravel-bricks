@@ -2,6 +2,7 @@
 
 namespace App\Actions\Pwa;
 
+use Illuminate\Http\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Spatie\Image\Enums\AlignPosition;
@@ -52,7 +53,7 @@ class GenerateAppIcons
         $disk->makeDirectory($directory);
 
         // The original, to generate the icons again when the background color changes.
-        $disk->put("{$directory}/".self::SourceFileName, file_get_contents($sourcePath));
+        $disk->putFileAs($directory, new File($sourcePath), self::SourceFileName);
 
         foreach (self::IconSizes as $size) {
             Image::load($sourcePath)

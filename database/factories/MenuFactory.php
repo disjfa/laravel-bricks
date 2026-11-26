@@ -16,11 +16,11 @@ class MenuFactory extends Factory
      */
     public function definition(): array
     {
-        $name = fake()->unique()->words(2, true);
+        $handle = fake()->unique()->slug(2);
 
         return [
-            'name' => Str::ucfirst($name),
-            'handle' => Str::slug($name),
+            'name' => Str::ucfirst(str_replace('-', ' ', $handle)),
+            'handle' => $handle,
         ];
     }
 

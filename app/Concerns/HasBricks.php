@@ -4,7 +4,6 @@ namespace App\Concerns;
 
 use App\Bricks\Brickable;
 use App\Models\Brick;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
@@ -15,7 +14,7 @@ trait HasBricks
 {
     public static function bootHasBricks(): void
     {
-        static::deleting(fn (Model $model) => $model->bricks()->delete());
+        static::deleting(fn (self $model) => $model->bricks()->delete());
     }
 
     /**

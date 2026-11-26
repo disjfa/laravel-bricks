@@ -5,7 +5,6 @@ namespace App\Concerns;
 use App\Enums\PublishStatus;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
 /**
@@ -24,10 +23,11 @@ trait PublishedTrait
 {
     public static function bootPublishedTrait(): void
     {
-        static::creating(function (Model $model): void {
+        static::creating(function (self $model): void {
             $model->status ??= PublishStatus::Concept;
 
-            if ($model->seqnr === null) {
+            // Not set yet: the next number of this model.
+            if ($model->getAttribute('seqnr') === null) {
                 $model->seqnr = (int) static::query()->max('seqnr') + 1;
             }
         });
