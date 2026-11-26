@@ -4,6 +4,7 @@ use App\Models\Brick;
 use App\Models\Form;
 use App\Models\FormField;
 use App\Models\Page;
+use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 
 it('renders a form brick on a page', function () {
@@ -20,7 +21,7 @@ it('renders a form brick on a page', function () {
 it('stores a valid submission and shows the success message', function () {
     $form = Form::factory()->contact()->create(['success_message' => 'We will be in touch.']);
 
-    Livewire::test('site-form', ['formId' => $form->id])
+    fillForm($form->id)
         ->set('values.name', 'Jane Doe')
         ->set('values.email', 'jane@example.com')
         ->call('submit')
@@ -33,7 +34,7 @@ it('stores a valid submission and shows the success message', function () {
 it('validates the submission with the rules of the fields', function () {
     $form = Form::factory()->contact()->create();
 
-    Livewire::test('site-form', ['formId' => $form->id])
+    fillForm($form->id)
         ->assertSeeHtml('novalidate')
         ->set('values.email', 'not-an-email')
         ->call('submit')
@@ -49,7 +50,7 @@ it('validates the submission with the rules of the fields', function () {
 it('only accepts the options of a select field', function () {
     $field = FormField::factory()->select(['Red', 'Blue'])->required()->create(['name' => 'colour']);
 
-    Livewire::test('site-form', ['formId' => $field->form_id])
+    fillForm($field->form_id)
         ->set('values.colour', 'Green')
         ->call('submit')
         ->assertHasErrors(['values.colour' => 'in']);
@@ -58,7 +59,7 @@ it('only accepts the options of a select field', function () {
 it('ignores values for fields that are not on the form', function () {
     $form = Form::factory()->contact()->create();
 
-    Livewire::test('site-form', ['formId' => $form->id])
+    fillForm($form->id)
         ->set('values.name', 'Jane Doe')
         ->set('values.email', 'jane@example.com')
         ->set('values.is_admin', '1')
@@ -71,7 +72,7 @@ it('ignores values for fields that are not on the form', function () {
 it('limits the number of submissions per visitor', function () {
     $form = Form::factory()->contact()->create();
 
-    $component = Livewire::test('site-form', ['formId' => $form->id]);
+    $component = fillForm($form->id);
 
     foreach (range(1, 6) as $attempt) {
         $component
@@ -83,3 +84,15 @@ it('limits the number of submissions per visitor', function () {
     $component->assertHasErrors(['form']);
     expect($form->submissions()->count())->toBe(5);
 });
+
+/**
+ * Show the form brick and take a few seconds to fill it in, like a visitor would.
+ */
+function fillForm(int $formId): Testable
+{
+    $component = Livewire::test('site-form', ['formId' => $formId]);
+
+    test()->travel(3)->seconds();
+
+    return $component;
+}

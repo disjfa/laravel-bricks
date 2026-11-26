@@ -7,7 +7,7 @@
         </div>
     @else
         {{-- novalidate: the server rules of the fields decide, the browser shows no validation popups of its own. --}}
-        <form wire:submit="submit" class="space-y-6" novalidate>
+        <form wire:submit="submit" class="relative space-y-6" novalidate>
             @if (filled($this->form->description))
                 <p class="text-lg text-zinc-700 dark:text-zinc-300">{{ $this->form->description }}</p>
             @endif
@@ -21,6 +21,20 @@
                     ])
                 </div>
             @endforeach
+
+            @if (App\Rules\Turnstile::isEnabled())
+                {{-- Cloudflare Turnstile, rendered by resources/js/turnstile.js. --}}
+                <div>
+                    <div wire:ignore x-data="turnstile({{ Js::from(App\Rules\Turnstile::siteKey()) }})" data-test="turnstile"></div>
+                    <flux:error name="turnstileToken" />
+                </div>
+            @else
+                {{-- The honeypot: off screen and skipped by keyboard and screen readers, so only bots fill it in. --}}
+                <div class="absolute -start-[9999px] size-px overflow-hidden" aria-hidden="true" data-test="honeypot">
+                    <label for="website-{{ $this->getId() }}">{{ __('Website') }}</label>
+                    <input type="text" id="website-{{ $this->getId() }}" wire:model="website" tabindex="-1" autocomplete="off">
+                </div>
+            @endif
 
             {{-- Errors about the form as a whole, field errors show under their field. --}}
             <flux:error name="form" />
