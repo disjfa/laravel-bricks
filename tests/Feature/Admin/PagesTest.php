@@ -6,8 +6,10 @@ use App\Models\Page;
 use App\Models\User;
 use Database\Seeders\RolesSeeder;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
+use Spatie\MediaLibrary\Conversions\Jobs\PerformConversionsJob;
 
 beforeEach(function () {
     $this->seed(RolesSeeder::class);
@@ -322,6 +324,23 @@ describe('media', function () {
         expect($media)->toHaveCount(2)
             ->and($media->firstWhere('name', 'hero')->hasGeneratedConversion('thumb'))->toBeTrue();
         Storage::disk('public')->assertExists($media->firstWhere('name', 'hero')->getPathRelativeToRoot());
+    });
+
+    it('queues the thumbnail when a real queue is set up and shows the original until it is made', function () {
+        Queue::fake();
+        $page = Page::factory()->create();
+
+        Livewire::test('pages::admin.pages.media', ['page' => $page])
+            ->set('uploads', [UploadedFile::fake()->image('hero.jpg', 1600, 900)])
+            ->assertHasNoErrors();
+
+        $media = $page->getFirstMedia(Page::MediaCollection);
+
+        Queue::assertPushed(PerformConversionsJob::class);
+        expect($media->hasGeneratedConversion('thumb'))->toBeFalse();
+
+        Livewire::test('pages::admin.pages.media', ['page' => $page])
+            ->assertSeeHtml('src="'.$media->getUrl().'"');
     });
 
     it('rejects file types that could run scripts', function (string $fileName) {

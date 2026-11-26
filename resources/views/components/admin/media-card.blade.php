@@ -5,6 +5,9 @@
     <a href="{{ $media->getUrl() }}" target="_blank" class="block aspect-4/3 bg-zinc-100 dark:bg-zinc-800">
         @if ($media->hasGeneratedConversion('thumb'))
             <img src="{{ $media->getUrl('thumb') }}" alt="{{ $media->name }}" class="h-full w-full object-cover" loading="lazy">
+        @elseif (str_starts_with((string) $media->mime_type, 'image/'))
+            {{-- The thumbnail is still on the queue. --}}
+            <img src="{{ $media->getUrl() }}" alt="{{ $media->name }}" class="h-full w-full object-cover" loading="lazy">
         @else
             <div class="flex h-full items-center justify-center">
                 <flux:icon name="document" class="size-12 text-zinc-400" />

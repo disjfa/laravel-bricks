@@ -56,12 +56,12 @@ class Page extends Model implements Brickable
     }
 
     /**
-     * The thumbnail is generated right away so the media panel can show it after uploading.
+     * The thumbnail goes over the queue: with the sync queue it is made during the upload, with a real
+     * queue (database, Horizon) a worker makes it. Until then the admin shows the original image.
      */
     public function registerMediaConversions(?Media $media = null): void
     {
         $this->addMediaConversion('thumb')
-            ->nonQueued()
             ->fit(Fit::Crop, 400, 300);
     }
 
