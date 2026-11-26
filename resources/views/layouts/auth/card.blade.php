@@ -11,7 +11,7 @@
                         <x-app-logo-icon class="size-9 fill-current text-black dark:text-white" />
                     </span>
 
-                    <span class="sr-only">{{ App\Models\Setting::siteTitle() }}</span>
+                    <span class="sr-only">{{ app(App\Settings\SiteSettings::class)->displayTitle() }}</span>
                 </a>
 
                 <div class="flex flex-col gap-6">

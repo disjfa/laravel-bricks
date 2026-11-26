@@ -2,10 +2,9 @@
 
 namespace App\Enums;
 
-use App\Models\Setting;
-
 /**
- * The colors of the website that admins set on the settings page, for the light and the dark scheme.
+ * The colors of the website that admins set on the settings page (App\Settings\ThemeSettings), for the light
+ * and the dark scheme.
  */
 enum ThemeColor: string
 {
@@ -15,8 +14,6 @@ enum ThemeColor: string
     case Text = 'text';
     case MenubarBackground = 'menubar_background';
     case MenubarText = 'menubar_text';
-
-    public const string SettingKey = 'theme';
 
     public const string Pattern = '/^#[0-9a-fA-F]{6}$/';
 
@@ -80,27 +77,5 @@ enum ThemeColor: string
             self::MenubarBackground => ['--site-menubar-background'],
             self::MenubarText => ['--site-menubar-text'],
         };
-    }
-
-    /**
-     * Every color of both schemes: the saved value, or the default.
-     *
-     * @return array<string, array<string, string>> scheme => color => hex
-     */
-    public static function palette(): array
-    {
-        $saved = Setting::get(self::SettingKey, []);
-
-        return collect(ColorScheme::cases())
-            ->mapWithKeys(fn (ColorScheme $scheme) => [
-                $scheme->value => collect(self::cases())
-                    ->mapWithKeys(function (ThemeColor $color) use ($saved, $scheme) {
-                        $value = $saved[$scheme->value][$color->value] ?? null;
-
-                        return [$color->value => is_string($value) && preg_match(self::Pattern, $value) ? $value : $color->default($scheme)];
-                    })
-                    ->all(),
-            ])
-            ->all();
     }
 }

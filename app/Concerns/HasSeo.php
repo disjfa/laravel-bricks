@@ -2,7 +2,8 @@
 
 namespace App\Concerns;
 
-use App\Models\Setting;
+use App\Settings\SeoSettings;
+use App\Settings\SiteSettings;
 use romanzipp\Seo\Structs\Meta;
 
 /**
@@ -31,12 +32,12 @@ trait HasSeo
             return $this->meta_title;
         }
 
-        return $this->title.' - '.Setting::metaTitle();
+        return $this->title.' - '.app(SeoSettings::class)->title();
     }
 
     public function seoDescription(): ?string
     {
-        return filled($this->meta_description) ? $this->meta_description : Setting::metaDescription();
+        return filled($this->meta_description) ? $this->meta_description : app(SeoSettings::class)->description();
     }
 
     /**
@@ -44,7 +45,7 @@ trait HasSeo
      */
     public function seoImage(): ?string
     {
-        $image = collect([$this->meta_image, $this->fallbackSeoImage(), Setting::metaImage()])->first(fn (?string $image) => filled($image));
+        $image = collect([$this->meta_image, $this->fallbackSeoImage(), app(SeoSettings::class)->image()])->first(fn (?string $image) => filled($image));
 
         return filled($image) ? url($image) : null;
     }
@@ -67,7 +68,7 @@ trait HasSeo
      */
     public function isIndexable(): bool
     {
-        return ! $this->noindex && ! Setting::isNoindex() && $this->isPublished();
+        return ! $this->noindex && ! app(SeoSettings::class)->noindex && $this->isPublished();
     }
 
     public function applySeo(): void
@@ -78,7 +79,7 @@ trait HasSeo
             ->canonical($this->url())
             ->og('type', $this->seoType())
             ->og('url', $this->url())
-            ->og('site_name', Setting::siteTitle())
+            ->og('site_name', app(SiteSettings::class)->displayTitle())
             ->twitter('card', 'summary_large_image');
 
         if ($image = $this->seoImage()) {

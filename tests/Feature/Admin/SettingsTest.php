@@ -6,8 +6,10 @@ use App\Features\Blogs;
 use App\Features\Forms;
 use App\Features\SiteMenu;
 use App\Models\Page;
-use App\Models\Setting;
 use App\Models\User;
+use App\Settings\SeoSettings;
+use App\Settings\SiteSettings;
+use App\Settings\ThemeSettings;
 use Database\Seeders\RolesSeeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -43,9 +45,20 @@ describe('as admin', function () {
             ->call('save')
             ->assertHasNoErrors();
 
-        expect(ThemeColor::palette())
+        expect(app(ThemeSettings::class)->palette())
             ->light->accent->toBe('#1d4ed8')
             ->dark->menubar_background->toBe('#000000');
+    });
+
+    it('uses the theme colors in the admin too', function () {
+        updateSettings(ThemeSettings::class, ['light' => ['accent' => '#1d4ed8'], 'dark' => ['menubar_background' => '#000000']]);
+
+        $this->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertSee('data-site-theme', false)
+            ->assertSee('data-site-menubar', false)
+            ->assertSee('--color-accent: #1d4ed8;', false)
+            ->assertSee('--site-menubar-background: #000000;', false);
     });
 
     it('rejects a color that is not a hex color', function (string $value) {
@@ -104,8 +117,8 @@ describe('as admin', function () {
             ->set('siteTitle', '')
             ->call('save');
 
-        expect(Setting::siteTitle())->toBe(config('app.name'))
-            ->and(Setting::metaTitle())->toBe(config('app.name'));
+        expect(app(SiteSettings::class)->displayTitle())->toBe(config('app.name'))
+            ->and(app(SeoSettings::class)->title())->toBe(config('app.name'));
     });
 
     it('uploads a logo that replaces the default logo', function () {
@@ -115,7 +128,7 @@ describe('as admin', function () {
             ->set('logo', UploadedFile::fake()->image('logo.png', 200, 64))
             ->assertHasNoErrors();
 
-        $path = Setting::get(Setting::SiteLogoKey);
+        $path = app(SiteSettings::class)->logo;
         Storage::disk('public')->assertExists($path);
 
         Page::factory()->published()->create(['slug' => 'home']);
@@ -128,16 +141,16 @@ describe('as admin', function () {
 
         $component = Livewire::test('pages::admin.settings')
             ->set('logo', UploadedFile::fake()->image('first.png'));
-        $firstPath = Setting::get(Setting::SiteLogoKey);
+        $firstPath = app(SiteSettings::class)->logo;
 
         $component->set('logo', UploadedFile::fake()->image('second.png'));
         Storage::disk('public')->assertMissing($firstPath);
 
-        $secondPath = Setting::get(Setting::SiteLogoKey);
+        $secondPath = app(SiteSettings::class)->logo;
         $component->call('removeLogo');
 
         Storage::disk('public')->assertMissing($secondPath);
-        expect(Setting::siteLogoUrl())->toBeNull();
+        expect(app(SiteSettings::class)->logoUrl())->toBeNull();
     });
 
     it('rejects an svg logo', function () {
@@ -147,6 +160,6 @@ describe('as admin', function () {
             ->set('logo', UploadedFile::fake()->create('logo.svg', 10, 'image/svg+xml'))
             ->assertHasErrors(['logo']);
 
-        expect(Setting::get(Setting::SiteLogoKey))->toBeNull();
+        expect(app(SiteSettings::class)->logo)->toBeNull();
     });
 });

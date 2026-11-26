@@ -6,7 +6,7 @@
     @endif
 
     <flux:menu>
-        @foreach (app(App\FormFields\FormFieldRegistry::class)->all() as $fieldType)
+        @foreach (app(App\FormFields\FormFieldRegistry::class)->available() as $fieldType)
             <flux:menu.item
                 :icon="$fieldType->icon()"
                 wire:click="addField('{{ $fieldType->key() }}'{{ $position === null ? '' : ', '.$position }})"

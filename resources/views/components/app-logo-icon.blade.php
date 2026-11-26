@@ -1,5 +1,5 @@
 {{-- The uploaded logo from the admin settings, or the default logo. --}}
-@if ($logoUrl = App\Models\Setting::siteLogoUrl())
+@if ($logoUrl = app(App\Settings\SiteSettings::class)->logoUrl())
     <img src="{{ $logoUrl }}" alt="" {{ $attributes->class('w-auto object-contain') }}>
 @else
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 42" {{ $attributes }}>

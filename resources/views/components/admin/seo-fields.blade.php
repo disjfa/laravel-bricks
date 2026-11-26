@@ -8,7 +8,7 @@
     <flux:input
         wire:model="metaTitle"
         :label="$isDefault ? __('Default meta title') : __('Meta title')"
-        :placeholder="$isDefault ? App\Models\Setting::siteTitle() : null"
+        :placeholder="$isDefault ? app(App\Settings\SiteSettings::class)->displayTitle() : null"
         :description:trailing="$isDefault
             ? __('The browser title of the home page, and added after the title of other pages.')
             : __('Replaces the whole browser title. Leave empty for the title followed by the default meta title.')"

@@ -63,7 +63,7 @@
         @endif
 
         {{-- Sticky at the bottom of the canvas column, so adding is always one click away. --}}
-        <div class="sticky bottom-0 z-10 -mx-4 -mb-4 flex justify-center bg-linear-to-t from-white from-60% to-transparent px-4 pt-8 pb-4 dark:from-zinc-800">
+        <div class="sticky bottom-0 z-10 -mx-4 -mb-4 flex justify-center bg-linear-to-t from-(--site-background) from-60% to-transparent px-4 pt-8 pb-4">
             @include('form-fields.inserter', ['position' => null, 'compact' => false])
         </div>
     </x-admin.screen.column>

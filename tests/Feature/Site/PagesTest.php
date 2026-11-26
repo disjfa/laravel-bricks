@@ -2,8 +2,8 @@
 
 use App\Models\Brick;
 use App\Models\Page;
-use App\Models\Setting;
 use App\Models\User;
+use App\Settings\ThemeSettings;
 use Database\Seeders\RolesSeeder;
 
 it('renders a published page and its bricks by slug', function () {
@@ -102,7 +102,7 @@ it('renders bricks in the container for their width', function (?array $settings
 ]);
 
 it('uses the theme colors from the settings', function () {
-    Setting::put('theme', ['light' => ['accent' => '#1d4ed8', 'menubar_background' => '#fefce8']]);
+    updateSettings(ThemeSettings::class, ['light' => ['accent' => '#1d4ed8', 'menubar_background' => '#fefce8']]);
     Page::factory()->published()->create(['slug' => 'home']);
 
     $this->get(route('home'))

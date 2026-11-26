@@ -4,9 +4,10 @@ namespace App\Models;
 
 use App\Bricks\Brickable;
 use App\Concerns\HasBricks;
+use App\Concerns\HasPublishing;
 use App\Concerns\HasSeo;
-use App\Concerns\PublishedTrait;
 use App\Enums\PublishStatus;
+use App\Settings\SeoSettings;
 use Database\Factories\PageFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
@@ -44,10 +45,10 @@ class Page extends Model implements Brickable
     /** @use HasFactory<PageFactory> */
     use HasFactory;
 
+    use HasPublishing;
     use HasSeo;
     use HasSlug;
     use InteractsWithMedia;
-    use PublishedTrait;
 
     public function registerMediaCollections(): void
     {
@@ -93,9 +94,9 @@ class Page extends Model implements Brickable
     public function seoTitle(): string
     {
         if (blank($this->meta_title) && $this->slug === 'home') {
-            return Setting::metaTitle();
+            return app(SeoSettings::class)->title();
         }
 
-        return filled($this->meta_title) ? $this->meta_title : $this->title.' - '.Setting::metaTitle();
+        return filled($this->meta_title) ? $this->meta_title : $this->title.' - '.app(SeoSettings::class)->title();
     }
 }

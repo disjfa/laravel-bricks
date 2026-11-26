@@ -15,11 +15,19 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->text('excerpt')->nullable();
             $table->string('image_url', 2048)->nullable();
+
+            // SEO, see App\Concerns\HasSeo
+            $table->string('meta_title')->nullable();
             $table->string('meta_description')->nullable();
+            $table->string('meta_image', 2048)->nullable();
+            $table->boolean('noindex')->default(false);
+
+            // Publishing, see App\Concerns\HasPublishing
             $table->string('status')->default(PublishStatus::Concept->value)->index();
             $table->timestamp('published_at')->nullable()->index();
             $table->timestamp('published_until')->nullable();
             $table->unsignedInteger('seqnr')->default(0)->index();
+
             $table->timestamps();
         });
     }

@@ -23,7 +23,7 @@
     From lg up the screen fills the viewport, so the header with its buttons always stays in view.
 --}}
 <div data-full-bleed {{ $attributes->class('lg:flex lg:h-dvh lg:flex-col') }}>
-    <header class="z-20 bg-white px-4 pt-4 dark:bg-zinc-800" data-test="screen-header">
+    <header class="z-20 bg-(--site-background) px-4 pt-4" data-test="screen-header">
         <div class="flex flex-col gap-4 border-b border-zinc-200 pb-4 sm:flex-row sm:items-center sm:justify-between dark:border-zinc-700">
             <div class="flex min-w-0 items-center gap-3">
                 @if ($back)

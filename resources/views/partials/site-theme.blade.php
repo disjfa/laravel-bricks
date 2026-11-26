@@ -1,9 +1,11 @@
 {{--
-    The theme colors from the admin settings page as CSS custom properties. This style block is not in a
+    The theme colors from the admin settings page as CSS custom properties, and the fonts (partials.fonts). This style block is not in a
     cascade layer, so it wins over the Tailwind theme and the Flux defaults. Only elements inside
     [data-site-theme] get the colors (the website body and the brick preview), the admin keeps its own.
 --}}
-@php($palette = App\Enums\ThemeColor::palette())
+@php($palette = app(App\Settings\ThemeSettings::class)->palette())
+
+@include('partials.fonts')
 
 <style>
     [data-site-theme] {
@@ -40,6 +42,7 @@
 
     [data-site-menu-panel] [data-flux-brand] div,
     [data-site-menu-panel] [data-flux-navlist-item]:not([data-current]),
+    [data-site-menubar] [data-flux-sidebar-item]:not([data-current]),
     [data-site-menubar] [data-flux-brand] div,
     [data-site-menubar] [data-flux-navbar-items]:not([data-current]) {
         color: var(--site-menubar-text);

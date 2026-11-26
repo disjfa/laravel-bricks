@@ -4,8 +4,8 @@ namespace App\Bricks;
 
 use App\Enums\BrickWidth;
 use App\Fields\Field;
+use App\Fields\FieldSet;
 use App\Fields\Select;
-use Illuminate\Support\Facades\Validator as ValidatorFacade;
 use Illuminate\Validation\Validator;
 
 /**
@@ -26,17 +26,17 @@ abstract class BaseBrick implements BrickType
 
     public function defaults(): array
     {
-        return $this->defaultsFor($this->fields());
+        return FieldSet::of($this->fields())->defaults();
     }
 
     public function rules(): array
     {
-        return $this->rulesFor($this->fields());
+        return FieldSet::of($this->fields())->rules();
     }
 
     public function validator(array $data): Validator
     {
-        return $this->validatorFor($this->fields(), $data);
+        return FieldSet::of($this->fields())->validator($data);
     }
 
     /**
@@ -63,53 +63,16 @@ abstract class BaseBrick implements BrickType
 
     public function settingsDefaults(): array
     {
-        return $this->defaultsFor($this->settings());
+        return FieldSet::of($this->settings())->defaults();
     }
 
     public function settingsValidator(array $settings): Validator
     {
-        return $this->validatorFor($this->settings(), $settings);
+        return FieldSet::of($this->settings())->validator($settings);
     }
 
     public function view(): string
     {
         return "bricks.web.{$this->key()}";
-    }
-
-    /**
-     * @param  array<int, Field>  $fields
-     * @return array<string, mixed>
-     */
-    protected function defaultsFor(array $fields): array
-    {
-        return collect($fields)
-            ->mapWithKeys(fn (Field $field) => [$field->name => $field->getDefault()])
-            ->all();
-    }
-
-    /**
-     * @param  array<int, Field>  $fields
-     * @return array<string, array<int, mixed>>
-     */
-    protected function rulesFor(array $fields): array
-    {
-        return collect($fields)
-            ->mapWithKeys(fn (Field $field) => [$field->name => $field->getRules()])
-            ->all();
-    }
-
-    /**
-     * Validates against the fields, with their labels in the validation messages.
-     *
-     * @param  array<int, Field>  $fields
-     * @param  array<string, mixed>  $data
-     */
-    protected function validatorFor(array $fields, array $data): Validator
-    {
-        return ValidatorFacade::make(
-            $data,
-            $this->rulesFor($fields),
-            attributes: collect($fields)->mapWithKeys(fn (Field $field) => [$field->name => mb_strtolower($field->getLabel())])->all(),
-        );
     }
 }

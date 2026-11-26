@@ -1,19 +1,8 @@
-@props(['title' => null, 'description' => null, 'seo' => null])
-
-@php
-    $mainMenu = Spatie\Menu\Laravel\Menu::main();
-    $footerMenu = Spatie\Menu\Laravel\Menu::footer();
-
-    // The SEO tags (title, description, Open Graph...) come from the page or blog ($seo, see App\Concerns\HasSeo)
-    // or from the site settings. The tag collection is shared, so it is cleared first.
-    seo()->clearStructs();
-    $seo ? $seo->applySeo() : App\Models\Setting::applyDefaultSeo($title, $description);
-@endphp
-
+{{-- Rendered by App\View\Components\SiteLayout (<x-site-layout>), which prepares the menus and SEO tags. --}}
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
-        @include('partials.head', ['seo' => true])
+        @include('partials.head', ['seoTags' => $seoTags])
         @include('partials.site-theme')
     </head>
     <body class="flex min-h-screen flex-col antialiased" data-site-theme>
@@ -92,7 +81,7 @@
                 </nav>
             @endif
 
-            <p>&copy; {{ now()->year }} {{ App\Models\Setting::siteTitle() }}</p>
+            <p>&copy; {{ now()->year }} {{ $siteTitle }}</p>
 
             {{-- Editors jump from the page or blog they are looking at straight into its brick editor. --}}
             @if ($seo instanceof App\Bricks\Brickable)

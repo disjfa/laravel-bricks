@@ -1,22 +1,20 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-@if ($seo ?? false)
-    {{-- The website: title, description and social tags from romanzipp/laravel-seo, see layouts/site. --}}
-    {{ seo()->render() }}
+@if (isset($seoTags))
+    {{-- The website: title, description and social tags, prepared by App\View\Components\SiteLayout. --}}
+    {{ $seoTags }}
 @else
     <title>
-        {{ filled($title ?? null) ? $title.' - '.App\Models\Setting::metaTitle() : App\Models\Setting::metaTitle() }}
+        {{ filled($title ?? null) ? $title.' - '.app(App\Settings\SeoSettings::class)->title() : app(App\Settings\SeoSettings::class)->title() }}
     </title>
 @endif
 
 @include('partials.app-icons')
 
-@if ($seo ?? false)
+@if (isset($seoTags))
     @include('partials.pwa')
 @endif
-
-@fonts
 
 @vite(['resources/css/app.css', 'resources/js/app.js'])
 @fluxAppearance

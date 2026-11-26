@@ -2,8 +2,8 @@
 
 use App\Models\Blog;
 use App\Models\Page;
-use App\Models\Setting;
 use App\Models\User;
+use App\Settings\SeoSettings;
 use Database\Seeders\RolesSeeder;
 use Livewire\Livewire;
 
@@ -28,7 +28,7 @@ it('renders the seo tags of a page', function () {
 });
 
 it('falls back to the title, the excerpt, the blog image and the site defaults', function () {
-    Setting::put(Setting::MetaTitleKey, 'Brick Works');
+    updateSettings(SeoSettings::class, ['meta_title' => 'Brick Works']);
     Blog::factory()->published()->create([
         'slug' => 'post',
         'title' => 'First post',
@@ -46,8 +46,8 @@ it('falls back to the title, the excerpt, the blog image and the site defaults',
 });
 
 it('uses the default share image and description from the settings', function () {
-    Setting::put(Setting::MetaImageKey, '/storage/1/default.jpg');
-    Setting::put(Setting::MetaDescriptionKey, 'Default description.');
+    updateSettings(SeoSettings::class, ['meta_image' => '/storage/1/default.jpg']);
+    updateSettings(SeoSettings::class, ['meta_description' => 'Default description.']);
     Page::factory()->published()->create(['slug' => 'plain', 'meta_description' => null]);
 
     $this->get('/plain')
@@ -62,10 +62,10 @@ it('asks search engines not to index', function (Closure $arrange, string $url) 
 })->with([
     'a page with noindex' => [fn () => Page::factory()->published()->create(['slug' => 'hidden', 'noindex' => true]), '/hidden'],
     'every page while the site is hidden' => [function () {
-        Setting::put(Setting::NoindexKey, true);
+        updateSettings(SeoSettings::class, ['noindex' => true]);
         Page::factory()->published()->create(['slug' => 'any']);
     }, '/any'],
-    'the welcome screen while the site is hidden' => [fn () => Setting::put(Setting::NoindexKey, true), '/'],
+    'the welcome screen while the site is hidden' => [fn () => updateSettings(SeoSettings::class, ['noindex' => true]), '/'],
 ]);
 
 it('does not let search engines index an unpublished page that an admin previews', function () {
@@ -136,7 +136,7 @@ describe('admin', function () {
             ->call('save')
             ->assertHasNoErrors();
 
-        expect(Setting::metaImage())->toBe('/storage/1/default.jpg')
-            ->and(Setting::isNoindex())->toBeTrue();
+        expect(app(SeoSettings::class)->image())->toBe('/storage/1/default.jpg')
+            ->and(app(SeoSettings::class)->noindex)->toBeTrue();
     });
 });

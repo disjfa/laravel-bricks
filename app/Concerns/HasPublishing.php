@@ -19,9 +19,9 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $published_until
  * @property int $seqnr
  */
-trait PublishedTrait
+trait HasPublishing
 {
-    public static function bootPublishedTrait(): void
+    public static function bootHasPublishing(): void
     {
         static::creating(function (self $model): void {
             $model->status ??= PublishStatus::Concept;
@@ -33,7 +33,7 @@ trait PublishedTrait
         });
     }
 
-    public function initializePublishedTrait(): void
+    public function initializeHasPublishing(): void
     {
         $this->mergeCasts([
             'status' => PublishStatus::class,

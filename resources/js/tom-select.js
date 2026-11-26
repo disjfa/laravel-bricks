@@ -29,7 +29,8 @@ function enhance(root = document) {
 
         const tomSelect = new TomSelect(select, {
             maxOptions: null,
-            allowEmptyOption: false,
+            // Options with an empty value can be chosen, like "System font". Flux placeholders are disabled and hidden.
+            allowEmptyOption: true,
             // A short list does not need a search field, which also keeps the keyboard closed on phones.
             controlInput: select.options.length > searchFrom ? '<input type="text" autocomplete="off" size="1" />' : null,
         });

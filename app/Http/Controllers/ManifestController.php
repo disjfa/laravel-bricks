@@ -5,7 +5,10 @@ namespace App\Http\Controllers;
 use App\Actions\Pwa\GenerateAppIcons;
 use App\Enums\ColorScheme;
 use App\Enums\ThemeColor;
-use App\Models\Setting;
+use App\Settings\PwaSettings;
+use App\Settings\SeoSettings;
+use App\Settings\SiteSettings;
+use App\Settings\ThemeSettings;
 use Illuminate\Http\JsonResponse;
 
 /**
@@ -15,21 +18,19 @@ use Illuminate\Http\JsonResponse;
  */
 class ManifestController extends Controller
 {
-    public function __invoke(): JsonResponse
+    public function __invoke(SiteSettings $site, SeoSettings $seo, PwaSettings $pwa, ThemeSettings $theme): JsonResponse
     {
-        $palette = ThemeColor::palette()[ColorScheme::Light->value];
-
         $manifest = array_filter([
             'id' => '/',
-            'name' => Setting::siteTitle(),
-            'short_name' => Setting::appShortName(),
-            'description' => Setting::metaDescription(),
+            'name' => $site->displayTitle(),
+            'short_name' => $pwa->shortName(),
+            'description' => $seo->description(),
             'start_url' => '/',
             'scope' => '/',
-            'display' => Setting::appDisplay(),
-            'background_color' => $palette[ThemeColor::Background->value],
-            'theme_color' => $palette[ThemeColor::MenubarBackground->value],
-            'icons' => $this->icons(),
+            'display' => $pwa->displayMode(),
+            'background_color' => $theme->color(ThemeColor::Background, ColorScheme::Light),
+            'theme_color' => $theme->color(ThemeColor::MenubarBackground, ColorScheme::Light),
+            'icons' => $this->icons($pwa),
         ], fn (mixed $value) => $value !== null);
 
         return response()
@@ -38,11 +39,11 @@ class ManifestController extends Controller
     }
 
     /**
-     * @return array<int, array{src: string, sizes: string, type: string, purpose?: string}>
+     * @return array<int, array{src: string|null, sizes: string, type: string, purpose?: string}>
      */
-    protected function icons(): array
+    protected function icons(PwaSettings $pwa): array
     {
-        if (Setting::appIconUrl('icon-192.png') === null) {
+        if ($pwa->iconUrl('icon-192.png') === null) {
             return [
                 ['src' => asset('apple-touch-icon.png'), 'sizes' => '180x180', 'type' => 'image/png'],
                 ['src' => asset('favicon.svg'), 'sizes' => 'any', 'type' => 'image/svg+xml'],
@@ -51,13 +52,13 @@ class ManifestController extends Controller
 
         return [
             ...array_map(fn (int $size) => [
-                'src' => Setting::appIconUrl("icon-{$size}.png"),
+                'src' => $pwa->iconUrl("icon-{$size}.png"),
                 'sizes' => "{$size}x{$size}",
                 'type' => 'image/png',
                 'purpose' => 'any',
             ], GenerateAppIcons::IconSizes),
             ...array_map(fn (int $size) => [
-                'src' => Setting::appIconUrl("maskable-{$size}.png"),
+                'src' => $pwa->iconUrl("maskable-{$size}.png"),
                 'sizes' => "{$size}x{$size}",
                 'type' => 'image/png',
                 'purpose' => 'maskable',

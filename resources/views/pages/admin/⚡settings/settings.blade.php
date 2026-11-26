@@ -22,7 +22,7 @@
 
                             <input type="file" wire:model="logo" accept=".png,.jpg,.jpeg,.webp,.avif,.gif" class="block w-full text-sm text-zinc-600 file:me-3 file:rounded-md file:border-0 file:bg-zinc-100 file:px-3 file:py-1.5 file:text-sm file:font-medium dark:text-zinc-300 dark:file:bg-zinc-700 dark:file:text-zinc-100" data-test="logo-input">
 
-                            @if (App\Models\Setting::siteLogoUrl())
+                            @if (app(App\Settings\SiteSettings::class)->logoUrl())
                                 <flux:button size="sm" variant="ghost" icon="trash" wire:click="removeLogo" :aria-label="__('Remove logo')" />
                             @endif
                         </div>
@@ -50,9 +50,9 @@
                     <flux:description>{{ __('A square PNG, JPG or WebP of at least 512 × 512 pixels. It is resized for the home screen, Android, Apple devices and the browser tab.') }}</flux:description>
 
                     <div class="flex items-center gap-4">
-                        @if ($iconUrl = App\Models\Setting::appIconUrl('icon-192.png'))
+                        @if ($iconUrl = app(App\Settings\PwaSettings::class)->iconUrl('icon-192.png'))
                             <img src="{{ $iconUrl }}" alt="" class="size-16 rounded-xl" data-test="app-icon-preview">
-                            <img src="{{ App\Models\Setting::appIconUrl('maskable-192.png') }}" alt="" class="size-16 rounded-full" title="{{ __('As a maskable icon on Android') }}">
+                            <img src="{{ app(App\Settings\PwaSettings::class)->iconUrl('maskable-192.png') }}" alt="" class="size-16 rounded-full" title="{{ __('As a maskable icon on Android') }}">
                         @else
                             <img src="/apple-touch-icon.png" alt="" class="size-16 rounded-xl">
                         @endif
@@ -70,7 +70,7 @@
                 </flux:field>
 
                 <div class="space-y-6">
-                    <flux:input wire:model="appShortName" :label="__('Short name')" :placeholder="App\Models\Setting::appShortName()" :description:trailing="__('Shown under the icon on a home screen, keep it under 12 characters.')" />
+                    <flux:input wire:model="appShortName" :label="__('Short name')" :placeholder="app(App\Settings\PwaSettings::class)->shortName()" :description:trailing="__('Shown under the icon on a home screen, keep it under 12 characters.')" />
 
                     <flux:select wire:model="appDisplay" :label="__('Display')" :description:trailing="__('How the installed app opens.')">
                         <flux:select.option value="standalone">{{ __('Standalone, like an app without browser controls') }}</flux:select.option>
@@ -78,6 +78,30 @@
                         <flux:select.option value="browser">{{ __('In the browser') }}</flux:select.option>
                     </flux:select>
                 </div>
+            </flux:card>
+        </section>
+
+        {{-- Fonts --}}
+        <section class="space-y-4">
+            <div>
+                <flux:heading size="lg">{{ __('Fonts') }}</flux:heading>
+                <flux:text class="mt-1">{{ __('Loaded from Bunny Fonts for visitors. Without a choice the website uses the system font of the device, so nothing is downloaded.') }}</flux:text>
+            </div>
+
+            <flux:card class="grid gap-6 lg:grid-cols-2">
+                <flux:select wire:model="fontText" :label="__('Text font')" :description:trailing="__('The body text, buttons and menus.')" data-test="font-text">
+                    <flux:select.option value="">{{ __('System font') }}</flux:select.option>
+                    @foreach (App\Enums\SiteFont::options() as $value => $label)
+                        <flux:select.option :value="$value">{{ $label }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+
+                <flux:select wire:model="fontHeading" :label="__('Heading font')" :description:trailing="__('Titles and headings.')" data-test="font-heading">
+                    <flux:select.option value="">{{ __('Same as the text font') }}</flux:select.option>
+                    @foreach (App\Enums\SiteFont::options() as $value => $label)
+                        <flux:select.option :value="$value">{{ $label }}</flux:select.option>
+                    @endforeach
+                </flux:select>
             </flux:card>
         </section>
 

@@ -3,9 +3,9 @@
 namespace App\FormFields;
 
 use App\Fields\Field;
+use App\Fields\FieldSet;
 use App\Fields\Text;
 use App\Fields\Toggle;
-use Illuminate\Support\Facades\Validator as ValidatorFacade;
 use Illuminate\Validation\Validator;
 
 /**
@@ -17,6 +17,11 @@ abstract class BaseFormField implements FormFieldType
     public function order(): int
     {
         return 100;
+    }
+
+    public function isAvailable(): bool
+    {
+        return true;
     }
 
     public function settings(): array
@@ -39,21 +44,12 @@ abstract class BaseFormField implements FormFieldType
 
     public function defaults(): array
     {
-        return collect($this->settings())
-            ->mapWithKeys(fn (Field $field) => [$field->name => $field->getDefault()])
-            ->merge(['label' => $this->label()])
-            ->all();
+        return [...FieldSet::of($this->settings())->defaults(), 'label' => $this->label()];
     }
 
     public function validator(array $settings): Validator
     {
-        $fields = collect($this->settings());
-
-        return ValidatorFacade::make(
-            $settings,
-            $fields->mapWithKeys(fn (Field $field) => [$field->name => $field->getRules()])->all(),
-            attributes: $fields->mapWithKeys(fn (Field $field) => [$field->name => mb_strtolower($field->getLabel())])->all(),
-        );
+        return FieldSet::of($this->settings())->validator($settings);
     }
 
     public function rules(array $settings): array

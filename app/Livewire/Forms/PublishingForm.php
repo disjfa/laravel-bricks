@@ -10,7 +10,7 @@ use Illuminate\Validation\Rule;
 use Livewire\Form;
 
 /**
- * The publishing fields of a model that uses App\Concerns\PublishedTrait, shared by the page and blog editors.
+ * The publishing fields of a model that uses App\Concerns\HasPublishing, shared by the page and blog editors.
  * Render it with <x-admin.publishing-fields />.
  */
 class PublishingForm extends Form

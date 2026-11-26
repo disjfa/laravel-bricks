@@ -4,9 +4,10 @@ namespace App\Models;
 
 use App\Bricks\Brickable;
 use App\Concerns\HasBricks;
+use App\Concerns\HasPublishing;
 use App\Concerns\HasSeo;
-use App\Concerns\PublishedTrait;
 use App\Enums\PublishStatus;
+use App\Settings\SeoSettings;
 use Carbon\CarbonInterface;
 use Database\Factories\BlogFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -49,10 +50,10 @@ class Blog extends Model implements Brickable
     /** @use HasFactory<BlogFactory> */
     use HasFactory;
 
+    use HasPublishing;
     use HasSeo;
     use HasSlug;
     use InteractsWithMedia;
-    use PublishedTrait;
 
     public function registerMediaCollections(): void
     {
@@ -105,7 +106,7 @@ class Blog extends Model implements Brickable
      */
     public function seoDescription(): ?string
     {
-        return collect([$this->meta_description, $this->excerpt, Setting::metaDescription()])->first(fn (?string $description) => filled($description));
+        return collect([$this->meta_description, $this->excerpt, app(SeoSettings::class)->description()])->first(fn (?string $description) => filled($description));
     }
 
     protected function fallbackSeoImage(): ?string

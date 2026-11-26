@@ -2,8 +2,9 @@
 
 use App\Actions\Pwa\GenerateAppIcons;
 use App\Models\Page;
-use App\Models\Setting;
 use App\Models\User;
+use App\Settings\PwaSettings;
+use App\Settings\SiteSettings;
 use Database\Seeders\RolesSeeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -14,7 +15,7 @@ beforeEach(function () {
 });
 
 it('serves a web app manifest with the default icons', function () {
-    Setting::put(Setting::SiteTitleKey, 'Brick Works Website');
+    updateSettings(SiteSettings::class, ['title' => 'Brick Works Website']);
 
     $this->get(route('manifest'))
         ->assertOk()
@@ -52,7 +53,7 @@ describe('app icon', function () {
             ->set('appIcon', UploadedFile::fake()->image('icon.png', 600, 600))
             ->assertHasNoErrors();
 
-        $directory = Setting::get(Setting::AppIconKey);
+        $directory = app(PwaSettings::class)->icon_directory;
         $files = collect([
             ...array_map(fn (int $size) => "icon-{$size}.png", GenerateAppIcons::IconSizes),
             ...array_map(fn (int $size) => "maskable-{$size}.png", GenerateAppIcons::MaskableSizes),
@@ -69,13 +70,13 @@ describe('app icon', function () {
 
         expect($manifest['icons'])->toHaveCount(count(GenerateAppIcons::IconSizes) + count(GenerateAppIcons::MaskableSizes))
             ->and(collect($manifest['icons'])->firstWhere('purpose', 'maskable'))
-            ->toMatchArray(['src' => Setting::appIconUrl('maskable-192.png'), 'sizes' => '192x192', 'type' => 'image/png']);
+            ->toMatchArray(['src' => app(PwaSettings::class)->iconUrl('maskable-192.png'), 'sizes' => '192x192', 'type' => 'image/png']);
 
         Page::factory()->published()->create(['slug' => 'home']);
 
         $this->get(route('home'))
-            ->assertSee('<link rel="apple-touch-icon" sizes="180x180" href="'.Setting::appIconUrl('apple-touch-icon-180.png').'">', false)
-            ->assertSee('<link rel="icon" type="image/png" sizes="32x32" href="'.Setting::appIconUrl('favicon-32.png').'">', false);
+            ->assertSee('<link rel="apple-touch-icon" sizes="180x180" href="'.app(PwaSettings::class)->iconUrl('apple-touch-icon-180.png').'">', false)
+            ->assertSee('<link rel="icon" type="image/png" sizes="32x32" href="'.app(PwaSettings::class)->iconUrl('favicon-32.png').'">', false);
     });
 
     it('rejects icons that are too small or svg', function (UploadedFile $file) {
@@ -83,7 +84,7 @@ describe('app icon', function () {
             ->set('appIcon', $file)
             ->assertHasErrors(['appIcon']);
 
-        expect(Setting::get(Setting::AppIconKey))->toBeNull();
+        expect(app(PwaSettings::class)->icon_directory)->toBeNull();
     })->with([
         'too small' => fn () => UploadedFile::fake()->image('small.png', 256, 256),
         'svg' => fn () => UploadedFile::fake()->create('icon.svg', 10, 'image/svg+xml'),
@@ -92,28 +93,28 @@ describe('app icon', function () {
     it('replaces and removes the icons', function () {
         $component = Livewire::test('pages::admin.settings')
             ->set('appIcon', UploadedFile::fake()->image('first.png', 512, 512));
-        $firstDirectory = Setting::get(Setting::AppIconKey);
+        $firstDirectory = app(PwaSettings::class)->icon_directory;
 
         $component->set('appIcon', UploadedFile::fake()->image('second.png', 512, 512));
         Storage::disk('public')->assertMissing($firstDirectory);
 
-        $secondDirectory = Setting::get(Setting::AppIconKey);
+        $secondDirectory = app(PwaSettings::class)->icon_directory;
         $component->call('removeAppIcon');
 
         Storage::disk('public')->assertMissing($secondDirectory);
-        expect(Setting::appIconUrl('icon-192.png'))->toBeNull();
+        expect(app(PwaSettings::class)->iconUrl('icon-192.png'))->toBeNull();
     });
 
     it('creates the icons again when the background color changes', function () {
         $component = Livewire::test('pages::admin.settings')
             ->set('appIcon', UploadedFile::fake()->image('icon.png', 512, 512));
-        $directory = Setting::get(Setting::AppIconKey);
+        $directory = app(PwaSettings::class)->icon_directory;
 
         $component->set('theme.light.background', '#000000')->call('save')->assertHasNoErrors();
 
-        expect(Setting::get(Setting::AppIconKey))->not->toBe($directory);
+        expect(app(PwaSettings::class)->icon_directory)->not->toBe($directory);
         Storage::disk('public')->assertMissing($directory);
-        Storage::disk('public')->assertExists(Setting::get(Setting::AppIconKey).'/maskable-512.png');
+        Storage::disk('public')->assertExists(app(PwaSettings::class)->icon_directory.'/maskable-512.png');
     });
 
     it('saves the short name and display mode', function () {

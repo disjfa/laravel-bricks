@@ -1,4 +1,4 @@
-<x-layouts::site :seo="$page">
+<x-site-layout :seo="$page">
     @unless ($page->isPublished())
         <div class="bg-zinc-100 px-4 py-2 text-center text-sm text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
             {{ __('This page is not published (:state) and only visible to editors.', ['state' => mb_strtolower($page->publicationLabel())]) }}
@@ -12,4 +12,4 @@
             @endif
         @endforeach
     </article>
-</x-layouts::site>
+</x-site-layout>

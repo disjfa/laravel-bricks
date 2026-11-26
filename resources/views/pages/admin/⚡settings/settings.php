@@ -2,10 +2,15 @@
 
 use App\Actions\Pwa\GenerateAppIcons;
 use App\Enums\ColorScheme;
+use App\Enums\SiteFont;
 use App\Enums\ThemeColor;
 use App\Features\SiteFeature;
 use App\Livewire\Concerns\EditsSeo;
-use App\Models\Setting;
+use App\Settings\FontSettings;
+use App\Settings\PwaSettings;
+use App\Settings\SeoSettings;
+use App\Settings\SiteSettings;
+use App\Settings\ThemeSettings;
 use Flux\Flux;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -40,6 +45,16 @@ new #[Layout('layouts::admin'), Title('Settings')] class extends Component
     public string $appDisplay = 'standalone';
 
     /**
+     * A SiteFont value, or empty for the system font.
+     */
+    public string $fontText = '';
+
+    /**
+     * A SiteFont value, or empty to use the text font.
+     */
+    public string $fontHeading = '';
+
+    /**
      * The website colors, scheme => color => hex.
      *
      * @var array<string, array<string, string>>
@@ -57,11 +72,16 @@ new #[Layout('layouts::admin'), Title('Settings')] class extends Component
     {
         $this->authorize('manageSettings');
 
-        $this->siteTitle = (string) Setting::get(Setting::SiteTitleKey, '');
-        $this->fillSeo(Setting::seoDefaults());
-        $this->appShortName = (string) Setting::get(Setting::AppShortNameKey, '');
-        $this->appDisplay = Setting::appDisplay();
-        $this->theme = ThemeColor::palette();
+        $pwa = app(PwaSettings::class);
+        $fonts = app(FontSettings::class);
+
+        $this->siteTitle = app(SiteSettings::class)->title ?? '';
+        $this->fillSeo(app(SeoSettings::class)->toArray());
+        $this->appShortName = $pwa->short_name ?? '';
+        $this->appDisplay = $pwa->displayMode();
+        $this->fontText = $fonts->text->value ?? '';
+        $this->fontHeading = $fonts->heading->value ?? '';
+        $this->theme = app(ThemeSettings::class)->palette();
 
         $this->features = collect(SiteFeature::All)
             ->mapWithKeys(fn (string $feature) => [class_basename($feature) => Feature::active($feature)])
@@ -80,7 +100,7 @@ new #[Layout('layouts::admin'), Title('Settings')] class extends Component
         $path = $this->logo->store('branding', 'public');
 
         $this->deleteLogoFile();
-        Setting::put(Setting::SiteLogoKey, $path);
+        $this->saveSiteLogo($path ?: null);
 
         $this->reset('logo');
 
@@ -92,14 +112,21 @@ new #[Layout('layouts::admin'), Title('Settings')] class extends Component
         $this->authorize('manageSettings');
 
         $this->deleteLogoFile();
-        Setting::put(Setting::SiteLogoKey, null);
+        $this->saveSiteLogo(null);
     }
 
     protected function deleteLogoFile(): void
     {
-        if (filled($oldPath = Setting::get(Setting::SiteLogoKey))) {
+        if (filled($oldPath = app(SiteSettings::class)->logo)) {
             Storage::disk('public')->delete($oldPath);
         }
+    }
+
+    protected function saveSiteLogo(?string $path): void
+    {
+        $site = app(SiteSettings::class);
+        $site->logo = $path;
+        $site->save();
     }
 
     public function updatedAppIcon(GenerateAppIcons $generateAppIcons): void
@@ -116,7 +143,7 @@ new #[Layout('layouts::admin'), Title('Settings')] class extends Component
         $directory = $generateAppIcons->handle($this->appIcon->getRealPath(), $this->iconBackgroundColor());
 
         $this->deleteAppIcons();
-        Setting::put(Setting::AppIconKey, $directory);
+        $this->saveAppIconDirectory($directory);
 
         $this->reset('appIcon');
 
@@ -128,14 +155,21 @@ new #[Layout('layouts::admin'), Title('Settings')] class extends Component
         $this->authorize('manageSettings');
 
         $this->deleteAppIcons();
-        Setting::put(Setting::AppIconKey, null);
+        $this->saveAppIconDirectory(null);
     }
 
     protected function deleteAppIcons(): void
     {
-        if (filled($directory = Setting::get(Setting::AppIconKey))) {
+        if (filled($directory = app(PwaSettings::class)->icon_directory)) {
             Storage::disk('public')->deleteDirectory($directory);
         }
+    }
+
+    protected function saveAppIconDirectory(?string $directory): void
+    {
+        $pwa = app(PwaSettings::class);
+        $pwa->icon_directory = $directory;
+        $pwa->save();
     }
 
     /**
@@ -143,7 +177,7 @@ new #[Layout('layouts::admin'), Title('Settings')] class extends Component
      */
     protected function iconBackgroundColor(): string
     {
-        return ThemeColor::palette()[ColorScheme::Light->value][ThemeColor::Background->value];
+        return app(ThemeSettings::class)->color(ThemeColor::Background, ColorScheme::Light);
     }
 
     /**
@@ -151,7 +185,7 @@ new #[Layout('layouts::admin'), Title('Settings')] class extends Component
      */
     protected function regenerateAppIcons(): void
     {
-        $directory = Setting::get(Setting::AppIconKey);
+        $directory = app(PwaSettings::class)->icon_directory;
         $sourcePath = "{$directory}/".GenerateAppIcons::SourceFileName;
 
         if (blank($directory) || ! Storage::disk('public')->exists($sourcePath)) {
@@ -161,7 +195,7 @@ new #[Layout('layouts::admin'), Title('Settings')] class extends Component
         $newDirectory = app(GenerateAppIcons::class)->handle(Storage::disk('public')->path($sourcePath), $this->iconBackgroundColor());
 
         $this->deleteAppIcons();
-        Setting::put(Setting::AppIconKey, $newDirectory);
+        $this->saveAppIconDirectory($newDirectory);
     }
 
     /**
@@ -207,7 +241,9 @@ new #[Layout('layouts::admin'), Title('Settings')] class extends Component
         $rules = [
             'siteTitle' => ['nullable', 'string', 'max:100'],
             'appShortName' => ['nullable', 'string', 'max:30'],
-            'appDisplay' => ['required', Rule::in(Setting::AppDisplayModes)],
+            'appDisplay' => ['required', Rule::in(PwaSettings::DisplayModes)],
+            'fontText' => ['nullable', Rule::enum(SiteFont::class)],
+            'fontHeading' => ['nullable', Rule::enum(SiteFont::class)],
             'features' => ['array'],
             'features.*' => ['boolean'],
         ];
@@ -226,21 +262,31 @@ new #[Layout('layouts::admin'), Title('Settings')] class extends Component
 
         $previousBackgroundColor = $this->iconBackgroundColor();
 
-        Setting::put(Setting::SiteTitleKey, trim($this->siteTitle) ?: null);
-        Setting::put(Setting::AppShortNameKey, trim($this->appShortName) ?: null);
-        Setting::put(Setting::AppDisplayKey, $this->appDisplay);
-        Setting::put(Setting::MetaTitleKey, $seo['meta_title']);
-        Setting::put(Setting::MetaDescriptionKey, $seo['meta_description']);
-        Setting::put(Setting::MetaImageKey, $seo['meta_image']);
-        Setting::put(Setting::NoindexKey, $seo['noindex']);
+        $site = app(SiteSettings::class);
+        $site->title = trim($this->siteTitle) ?: null;
+        $site->save();
 
-        Setting::put(ThemeColor::SettingKey, collect(ColorScheme::cases())
-            ->mapWithKeys(fn (ColorScheme $scheme) => [
-                $scheme->value => collect(ThemeColor::cases())
-                    ->mapWithKeys(fn (ThemeColor $color) => [$color->value => mb_strtolower($this->theme[$scheme->value][$color->value])])
-                    ->all(),
-            ])
-            ->all());
+        $seoSettings = app(SeoSettings::class);
+        $seoSettings->meta_title = $seo['meta_title'];
+        $seoSettings->meta_description = $seo['meta_description'];
+        $seoSettings->meta_image = $seo['meta_image'];
+        $seoSettings->noindex = $seo['noindex'];
+        $seoSettings->save();
+
+        $pwa = app(PwaSettings::class);
+        $pwa->short_name = trim($this->appShortName) ?: null;
+        $pwa->display = $this->appDisplay;
+        $pwa->save();
+
+        $fonts = app(FontSettings::class);
+        $fonts->text = SiteFont::tryFrom($this->fontText);
+        $fonts->heading = SiteFont::tryFrom($this->fontHeading);
+        $fonts->save();
+
+        $theme = app(ThemeSettings::class);
+        $theme->light = $this->themeColors(ColorScheme::Light);
+        $theme->dark = $this->themeColors(ColorScheme::Dark);
+        $theme->save();
 
         if ($this->iconBackgroundColor() !== $previousBackgroundColor) {
             $this->regenerateAppIcons();
@@ -253,5 +299,15 @@ new #[Layout('layouts::admin'), Title('Settings')] class extends Component
         }
 
         Flux::toast(variant: 'success', text: __('Settings saved.'));
+    }
+
+    /**
+     * @return array<string, string> color => hex
+     */
+    protected function themeColors(ColorScheme $scheme): array
+    {
+        return collect(ThemeColor::cases())
+            ->mapWithKeys(fn (ThemeColor $color) => [$color->value => mb_strtolower($this->theme[$scheme->value][$color->value])])
+            ->all();
     }
 };

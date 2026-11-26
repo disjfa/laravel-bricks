@@ -3,36 +3,15 @@
 namespace App\Bricks;
 
 use App\Fields\Field;
+use App\Registry\RegisteredType;
 use Illuminate\Validation\Validator;
 
 /**
  * A kind of brick a page can be built from. Every class in app/Bricks that implements
  * this interface is discovered automatically, see BrickServiceProvider.
  */
-interface BrickType
+interface BrickType extends RegisteredType
 {
-    /**
-     * The identifier stored in the bricks.type column.
-     */
-    public function key(): string;
-
-    public function label(): string;
-
-    /**
-     * A Heroicon name.
-     */
-    public function icon(): string;
-
-    /**
-     * Position in the "Add brick" menu, lower comes first.
-     */
-    public function order(): int;
-
-    /**
-     * Whether the brick can be added and is shown on the website, false when its feature is turned off.
-     */
-    public function isAvailable(): bool;
-
     /**
      * The fields an editor fills in. They define the data the website view receives.
      *
