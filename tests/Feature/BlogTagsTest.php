@@ -17,24 +17,33 @@ describe('admin', function () {
         $this->actingAs(User::factory()->admin()->create());
     });
 
-    it('saves categories, a new category and tags', function () {
-        $news = Tag::findOrCreate('News', BlogTagType::Category->value);
-        Tag::findOrCreate('Releases', BlogTagType::Category->value);
+    it('saves categories and tags, and makes the ones that do not exist yet', function () {
+        Tag::findOrCreate('News', BlogTagType::Category->value);
         $blog = Blog::factory()->create();
 
         Livewire::test('pages::admin.blogs.settings', ['blog' => $blog])
-            ->set('categories', [(string) $news->id])
-            ->set('newCategory', 'Tutorials')
-            ->set('tags', 'laravel,  Livewire , laravel, ')
+            ->assertSeeHtml('data-test="blog-categories"')
+            ->set('categories', ['News', ' Tutorials '])
+            ->set('tags', ['laravel', 'Livewire', 'LARAVEL', ''])
             ->call('save')
             ->assertHasNoErrors()
-            ->assertSet('newCategory', '')
-            ->assertSet('tags', 'laravel, Livewire');
+            ->assertSet('categories', ['News', 'Tutorials'])
+            ->assertSet('tags', ['laravel', 'Livewire']);
 
         $blog->load('tags');
 
         expect($blog->tagsOfType(BlogTagType::Category)->pluck('name')->all())->toBe(['News', 'Tutorials'])
-            ->and($blog->tagsOfType(BlogTagType::Tag)->pluck('name')->all())->toBe(['laravel', 'Livewire']);
+            ->and($blog->tagsOfType(BlogTagType::Tag)->pluck('name')->all())->toBe(['laravel', 'Livewire'])
+            ->and(Tag::getWithType(BlogTagType::Category->value))->toHaveCount(2);
+    });
+
+    it('offers the existing categories and tags', function () {
+        Tag::findOrCreate('Releases', BlogTagType::Category->value);
+        Tag::findOrCreate('api', BlogTagType::Tag->value);
+
+        Livewire::test('pages::admin.blogs.settings', ['blog' => Blog::factory()->create()])
+            ->assertSeeHtml('<option value="Releases"')
+            ->assertSeeHtml('<option value="api"');
     });
 
     it('removes categories and tags', function () {
@@ -43,22 +52,37 @@ describe('admin', function () {
         $blog->attachTag('laravel', BlogTagType::Tag->value);
 
         Livewire::test('pages::admin.blogs.settings', ['blog' => $blog])
-            ->assertSet('tags', 'laravel')
+            ->assertSet('tags', ['laravel'])
             ->set('categories', [])
-            ->set('tags', '')
+            ->set('tags', [])
             ->call('save')
             ->assertHasNoErrors();
 
         expect($blog->refresh()->tags)->toBeEmpty();
     });
 
-    it('rejects a category that is a tag', function () {
-        $tag = Tag::findOrCreate('laravel', BlogTagType::Tag->value);
-
+    it('rejects names that are too long', function () {
         Livewire::test('pages::admin.blogs.settings', ['blog' => Blog::factory()->create()])
-            ->set('categories', [(string) $tag->id])
+            ->set('categories', [str_repeat('a', 51)])
             ->call('save')
             ->assertHasErrors(['categories.0']);
+    });
+
+    it('shows the categories and tags in the blog list and filters it by them', function () {
+        $news = Blog::factory()->create(['title' => 'In the news']);
+        $news->attachTag('News', BlogTagType::Category->value);
+        $news->attachTag('laravel', BlogTagType::Tag->value);
+        Blog::factory()->create(['title' => 'Without category']);
+
+        Livewire::test('pages::admin.blogs.index')
+            ->assertSee(['News', 'laravel', 'Without category'])
+            ->set('category', 'news')
+            ->assertSee('In the news')
+            ->assertDontSee('Without category')
+            ->set('category', '')
+            ->set('tag', 'laravel')
+            ->assertSee('In the news')
+            ->assertDontSee('Without category');
     });
 });
 

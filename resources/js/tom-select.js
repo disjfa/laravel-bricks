@@ -83,9 +83,10 @@ document.addEventListener('livewire:init', () => {
     Livewire.hook('morph.updating', ({ el, toEl, skip }) => {
         // On the parent of a Tom Select: take the wrapper out, so its children line up with the
         // server HTML. Otherwise the wrapper would be matched with the next element, like an error.
+        // Only the wrappers of Flux selects: a tag select (tagSelect below) lives in wire:ignore and is left alone.
         const wrapper = el.querySelector?.(':scope > .ts-wrapper');
 
-        if (wrapper) {
+        if (wrapper && wrapper.previousElementSibling?.matches(selector)) {
             wrapper.hadFocus = wrapper.contains(document.activeElement);
             wrapper.remove();
         }
@@ -126,3 +127,29 @@ document.addEventListener('livewire:init', () => {
         });
     });
 });
+
+/**
+ * A multiple select with Tom Select for tags or categories: x-data="tagSelect('categories')" on an element with
+ * wire:ignore that holds a <select multiple x-ref="select">. Typing a name that is not in the list adds it.
+ * The chosen names are written to the given property of the Livewire component, without a request.
+ */
+export function tagSelect(property) {
+    return {
+        tomSelect: null,
+
+        init() {
+            this.tomSelect = new TomSelect(this.$refs.select, {
+                plugins: ['remove_button'],
+                create: true,
+                createOnBlur: true,
+                persist: false,
+                maxOptions: null,
+                onChange: () => this.$wire.set(property, this.tomSelect.getValue(), false),
+            });
+        },
+
+        destroy() {
+            this.tomSelect?.destroy();
+        },
+    };
+}

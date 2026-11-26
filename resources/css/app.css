@@ -173,8 +173,36 @@ select:focus[data-flux-control] {
     }
 
     .ts-wrapper .ts-dropdown .option,
+    .ts-wrapper .ts-dropdown .create,
     .ts-wrapper .ts-dropdown .no-results {
         @apply rounded-md px-2 py-1.5;
+    }
+
+    .ts-wrapper .ts-dropdown .create.active {
+        @apply bg-zinc-100 text-zinc-900 dark:bg-zinc-600 dark:text-white;
+    }
+
+    /* Multiple selects for tags (<x-admin.tag-select>): the chosen names as chips in the field. */
+    .ts-wrapper.multi .ts-control,
+    .ts-wrapper.multi.has-items .ts-control,
+    .ts-wrapper.multi.input-active .ts-control {
+        @apply min-h-0 flex-wrap gap-1 border-0 bg-transparent px-0 py-0.5 shadow-none;
+        color: inherit;
+        font: inherit;
+    }
+
+    .ts-wrapper.multi .ts-control > .item,
+    .ts-wrapper.multi.has-items .ts-control > .item {
+        @apply m-0 inline-flex items-center rounded-md border-0 bg-zinc-100 py-0.5 ps-2 pe-0 text-sm text-zinc-800 dark:bg-white/15 dark:text-white;
+    }
+
+    .ts-wrapper.plugin-remove_button .item .remove {
+        @apply ms-1 border-0 px-1.5 text-zinc-500 hover:bg-transparent hover:text-zinc-900 dark:text-white/60 dark:hover:text-white;
+    }
+
+    .ts-wrapper.multi .ts-control > input {
+        @apply min-w-32 py-0.5;
+        color: inherit;
     }
 
     .ts-wrapper .ts-dropdown .option.active {

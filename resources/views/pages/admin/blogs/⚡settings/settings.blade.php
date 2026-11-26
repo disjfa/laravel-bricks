@@ -23,17 +23,23 @@
             <flux:card class="space-y-6">
                 <flux:heading size="lg">{{ __('Categories and tags') }}</flux:heading>
 
-                <flux:checkbox.group wire:model="categories" :label="__('Categories')" data-test="blog-categories">
-                    @forelse ($this->allCategories as $category)
-                        <flux:checkbox :value="(string) $category->id" :label="$category->name" />
-                    @empty
-                        <flux:text size="sm">{{ __('No categories yet, add the first one below.') }}</flux:text>
-                    @endforelse
-                </flux:checkbox.group>
+                <x-admin.tag-select
+                    model="categories"
+                    :label="__('Categories')"
+                    :options="$this->tagNames(App\Enums\BlogTagType::Category)"
+                    :selected="$categories"
+                    :placeholder="__('Choose or type a new category...')"
+                    data-test="blog-categories"
+                />
 
-                <flux:input wire:model="newCategory" :label="__('New category')" :description:trailing="__('Added to this blog when you save.')" />
-
-                <flux:input wire:model="tags" :label="__('Tags')" :placeholder="__('laravel, livewire, cms')" :description:trailing="__('Separate tags with commas. New tags are made when you save.')" />
+                <x-admin.tag-select
+                    model="tags"
+                    :label="__('Tags')"
+                    :options="$this->tagNames(App\Enums\BlogTagType::Tag)"
+                    :selected="$tags"
+                    :placeholder="__('Choose or type a new tag...')"
+                    data-test="blog-tags"
+                />
             </flux:card>
 
             <flux:card class="space-y-6">

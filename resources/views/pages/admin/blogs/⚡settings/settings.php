@@ -7,7 +7,6 @@ use App\Livewire\Forms\PublishingForm;
 use App\Models\Blog;
 use App\Rules\Slug;
 use Flux\Flux;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
@@ -30,21 +29,18 @@ new #[Layout('layouts::admin')] class extends Component
     public string $imageUrl = '';
 
     /**
-     * The ids of the chosen categories.
+     * The names of the categories. Names that do not exist yet are made when the blog is saved.
      *
      * @var array<int, string>
      */
     public array $categories = [];
 
     /**
-     * A category to add, it is made when the blog is saved.
+     * The names of the tags. Names that do not exist yet are made when the blog is saved.
+     *
+     * @var array<int, string>
      */
-    public string $newCategory = '';
-
-    /**
-     * The tags, separated by commas.
-     */
-    public string $tags = '';
+    public array $tags = [];
 
     public PublishingForm $publishing;
 
@@ -57,8 +53,7 @@ new #[Layout('layouts::admin')] class extends Component
         $this->slug = $blog->slug;
         $this->excerpt = $blog->excerpt ?? '';
         $this->imageUrl = $blog->image_url ?? '';
-        $this->categories = $blog->tagsOfType(BlogTagType::Category)->map(fn (Tag $tag) => (string) $tag->id)->all();
-        $this->tags = $blog->tagsOfType(BlogTagType::Tag)->pluck('name')->implode(', ');
+        $this->fillTags();
         $this->fillSeo($blog->only(['meta_title', 'meta_description', 'meta_image', 'noindex']));
         $this->publishing->fillFromModel($blog);
     }
@@ -78,13 +73,14 @@ new #[Layout('layouts::admin')] class extends Component
             ],
             'excerpt' => ['nullable', 'string', 'max:1000'],
             'imageUrl' => $this->imageField()->getRules(),
-            'categories' => ['array'],
-            'categories.*' => [Rule::exists('tags', 'id')->where('type', BlogTagType::Category->value)],
-            'newCategory' => ['nullable', 'string', 'max:50'],
-            'tags' => ['nullable', 'string', 'max:1000'],
+            'categories' => ['array', 'max:10'],
+            'categories.*' => ['string', 'max:50'],
+            'tags' => ['array', 'max:30'],
+            'tags.*' => ['string', 'max:50'],
         ], [], [
             'imageUrl' => __('image'),
-            'newCategory' => __('new category'),
+            'categories.*' => __('category'),
+            'tags.*' => __('tag'),
         ]);
 
         $this->blog->update([
@@ -102,47 +98,52 @@ new #[Layout('layouts::admin')] class extends Component
     }
 
     /**
-     * Store the categories and tags. Tags and a new category are made when they do not exist yet.
+     * Store the categories and tags. Names that do not exist yet are made.
      */
     protected function saveTags(): void
     {
-        $categoryNames = $this->allCategories()
-            ->whereIn('id', array_map('intval', $this->categories))
-            ->pluck('name')
-            ->when(filled(trim($this->newCategory)), fn ($names) => $names->push(trim($this->newCategory)))
-            ->unique()
-            ->all();
-
-        $tagNames = collect(explode(',', $this->tags))
-            ->map(fn (string $tag) => trim($tag))
-            ->filter()
-            ->unique(fn (string $tag) => mb_strtolower($tag))
-            ->take(30)
-            ->all();
-
-        $this->blog->syncTagsWithType($categoryNames, BlogTagType::Category->value);
-        $this->blog->syncTagsWithType($tagNames, BlogTagType::Tag->value);
+        $this->blog->syncTagsWithType(self::cleanNames($this->categories), BlogTagType::Category->value);
+        $this->blog->syncTagsWithType(self::cleanNames($this->tags), BlogTagType::Tag->value);
 
         $this->blog->load('tags');
-        unset($this->allCategories);
 
-        $this->categories = $this->blog->tagsOfType(BlogTagType::Category)->map(fn (Tag $tag) => (string) $tag->id)->all();
-        $this->tags = $this->blog->tagsOfType(BlogTagType::Tag)->pluck('name')->implode(', ');
-        $this->reset('newCategory');
+        $this->fillTags();
+    }
+
+    protected function fillTags(): void
+    {
+        $this->categories = $this->blog->tagsOfType(BlogTagType::Category)->pluck('name')->all();
+        $this->tags = $this->blog->tagsOfType(BlogTagType::Tag)->pluck('name')->all();
     }
 
     /**
-     * Every category, to choose from.
+     * Trimmed names without empty ones, and one of the names that only differ in capitals.
      *
-     * @return Collection<int, Tag>
+     * @param  array<int, string>  $names
+     * @return array<int, string>
      */
-    #[Computed]
-    public function allCategories(): Collection
+    protected static function cleanNames(array $names): array
     {
-        return Tag::getWithType(BlogTagType::Category->value)
+        return collect($names)
+            ->map(fn (string $name) => trim($name))
+            ->filter()
+            ->unique(fn (string $name) => mb_strtolower($name))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Every tag of the type, to choose from.
+     *
+     * @return array<int, string>
+     */
+    public function tagNames(BlogTagType $type): array
+    {
+        return Tag::getWithType($type->value)
             ->whereInstanceOf(Tag::class)
             ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
-            ->values();
+            ->pluck('name')
+            ->all();
     }
 
     public function imageField(): Image
