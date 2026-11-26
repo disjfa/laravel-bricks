@@ -6,12 +6,13 @@ use App\Livewire\Forms\PublishingForm;
 use App\Models\Blog;
 use Flux\Flux;
 use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
-use Illuminate\View\View;
 use Livewire\Component;
 
-new #[Layout('layouts::admin')] class extends Component {
+new #[Layout('layouts::admin')] class extends Component
+{
     use EditsSeo;
 
     public Blog $blog;
@@ -92,4 +93,4 @@ new #[Layout('layouts::admin')] class extends Component {
     {
         return $this->view()->title(__(':title settings', ['title' => $this->blog->title]));
     }
-}; 
+};

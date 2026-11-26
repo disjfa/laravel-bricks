@@ -18,7 +18,8 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-new #[Layout('layouts::admin'), Title('Settings')] class extends Component {
+new #[Layout('layouts::admin'), Title('Settings')] class extends Component
+{
     use EditsSeo;
     use WithFileUploads;
 
@@ -253,4 +254,4 @@ new #[Layout('layouts::admin'), Title('Settings')] class extends Component {
 
         Flux::toast(variant: 'success', text: __('Settings saved.'));
     }
-}; 
+};

@@ -3,11 +3,12 @@
 use App\Bricks\Brickable;
 use App\Livewire\Concerns\EditsBricks;
 use App\Models\Blog;
-use Livewire\Attributes\Layout;
 use Illuminate\View\View;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-new #[Layout('layouts::admin')] class extends Component {
+new #[Layout('layouts::admin')] class extends Component
+{
     use EditsBricks;
 
     public Blog $blog;
@@ -30,4 +31,4 @@ new #[Layout('layouts::admin')] class extends Component {
     {
         return $this->view()->title(__('Edit :title', ['title' => $this->blog->title]));
     }
-}; 
+};

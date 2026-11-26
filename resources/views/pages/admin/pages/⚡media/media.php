@@ -3,12 +3,13 @@
 use App\Bricks\Brickable;
 use App\Livewire\Concerns\ManagesMedia;
 use App\Models\Page;
-use Livewire\Attributes\Layout;
 use Illuminate\View\View;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
-new #[Layout('layouts::admin')] class extends Component {
+new #[Layout('layouts::admin')] class extends Component
+{
     use ManagesMedia;
     use WithFileUploads;
 
@@ -30,4 +31,4 @@ new #[Layout('layouts::admin')] class extends Component {
     {
         return $this->view()->title(__(':title media', ['title' => $this->page->title]));
     }
-}; 
+};

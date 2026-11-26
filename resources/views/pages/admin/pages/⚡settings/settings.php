@@ -5,11 +5,12 @@ use App\Livewire\Forms\PublishingForm;
 use App\Models\Page;
 use Flux\Flux;
 use Illuminate\Validation\Rule;
-use Livewire\Attributes\Layout;
 use Illuminate\View\View;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-new #[Layout('layouts::admin')] class extends Component {
+new #[Layout('layouts::admin')] class extends Component
+{
     use EditsSeo;
 
     public Page $page;
@@ -62,4 +63,4 @@ new #[Layout('layouts::admin')] class extends Component {
     {
         return $this->view()->title(__(':title settings', ['title' => $this->page->title]));
     }
-}; 
+};

@@ -10,12 +10,13 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
-use Illuminate\View\View;
 use Livewire\Component;
 
-new #[Layout('layouts::admin')] class extends Component {
+new #[Layout('layouts::admin')] class extends Component
+{
     public Menu $menu;
 
     public string $name = '';
@@ -200,4 +201,4 @@ new #[Layout('layouts::admin')] class extends Component {
     {
         return $this->view()->title(__('Edit :name', ['name' => $this->menu->name]));
     }
-}; 
+};

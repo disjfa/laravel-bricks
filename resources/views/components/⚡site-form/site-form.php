@@ -5,15 +5,16 @@ use App\Models\Form;
 use App\Models\FormField;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
+use Laravel\Pennant\Feature;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
-use Laravel\Pennant\Feature;
 use Livewire\Component;
 
 /**
  * A form from the form builder on the website, rendered by the form brick.
  */
-new class extends Component {
+new class extends Component
+{
     #[Locked]
     public int $formId;
 
@@ -84,4 +85,4 @@ new class extends Component {
             ->mapWithKeys(fn (FormField $field) => [$field->name => $field->emptyValue()])
             ->all() ?? [];
     }
-}; 
+};

@@ -10,11 +10,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
-use Livewire\Attributes\Layout;
 use Illuminate\View\View;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-new #[Layout('layouts::admin')] class extends Component {
+new #[Layout('layouts::admin')] class extends Component
+{
     public Form $form;
 
     /**
@@ -252,4 +253,4 @@ new #[Layout('layouts::admin')] class extends Component {
     {
         return $this->view()->title(__('Edit :name', ['name' => $this->form->name]));
     }
-}; 
+};

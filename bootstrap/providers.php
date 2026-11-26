@@ -1,9 +1,15 @@
 <?php
 
+use App\Providers\AppServiceProvider;
+use App\Providers\BrickServiceProvider;
+use App\Providers\FortifyServiceProvider;
+use App\Providers\HorizonServiceProvider;
+use App\Providers\MenuServiceProvider;
+
 return [
-    App\Providers\AppServiceProvider::class,
-    App\Providers\BrickServiceProvider::class,
-    App\Providers\FortifyServiceProvider::class,
-    App\Providers\HorizonServiceProvider::class,
-    App\Providers\MenuServiceProvider::class,
+    AppServiceProvider::class,
+    BrickServiceProvider::class,
+    FortifyServiceProvider::class,
+    HorizonServiceProvider::class,
+    MenuServiceProvider::class,
 ];
