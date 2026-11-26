@@ -16,7 +16,8 @@
             @foreach ($bricks as $index => $brick)
                 @php($type = $registry->find($brick['type']))
 
-                <div wire:key="brick-{{ $brick['key'] }}" wire:sort:item="{{ $brick['key'] }}" class="group/brick">
+                {{-- The key includes the position: the inputs bind to their position (like bricks.0.label), so a moved brick is rendered fresh with the right bindings. --}}
+                <div wire:key="brick-{{ $brick['key'] }}-{{ $index }}" wire:sort:item="{{ $brick['key'] }}" class="group/brick">
                     <flux:card class="space-y-4 p-4! transition group-hover/brick:ring-2 group-hover/brick:ring-zinc-200 dark:group-hover/brick:ring-zinc-600">
                         <div class="flex items-center gap-2">
                             <div wire:sort:handle class="cursor-grab text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200" title="{{ __('Drag to reorder') }}">

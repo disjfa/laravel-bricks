@@ -6,7 +6,8 @@
             @foreach ($fields as $index => $field)
                 @php($type = $this->fieldType($field['type']))
 
-                <div wire:key="field-{{ $field['key'] }}" wire:sort:item="{{ $field['key'] }}" class="group/field">
+                {{-- The key includes the position: the inputs bind to their position (like fields.0.label), so a moved field is rendered fresh with the right bindings. --}}
+                <div wire:key="field-{{ $field['key'] }}-{{ $index }}" wire:sort:item="{{ $field['key'] }}" class="group/field">
                     <flux:card class="space-y-4 p-4! transition group-hover/field:ring-2 group-hover/field:ring-zinc-200 dark:group-hover/field:ring-zinc-600">
                         <div class="flex items-center gap-2">
                             <div wire:sort:handle class="cursor-grab text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200" title="{{ __('Drag to reorder') }}">

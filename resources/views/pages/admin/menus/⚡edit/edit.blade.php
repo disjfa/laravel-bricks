@@ -5,7 +5,8 @@
                 @foreach ($items as $index => $item)
                     @php($type = App\Enums\MenuItemType::from($item['type']))
 
-                    <div wire:key="item-{{ $item['key'] }}" wire:sort:item="{{ $item['key'] }}" class="group/item">
+                    {{-- The key includes the position: the inputs bind to their position (like items.0.label), so a moved item is rendered fresh with the right bindings. --}}
+                    <div wire:key="item-{{ $item['key'] }}-{{ $index }}" wire:sort:item="{{ $item['key'] }}" class="group/item">
                         <flux:card class="p-4! transition group-hover/item:ring-2 group-hover/item:ring-zinc-200 dark:group-hover/item:ring-zinc-600">
                             <div class="flex items-start gap-3">
                                 <div wire:sort:handle class="mt-8 cursor-grab text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200" title="{{ __('Drag to reorder') }}">

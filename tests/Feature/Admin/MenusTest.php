@@ -92,3 +92,18 @@ it('removes items', function () {
 
     $this->assertModelMissing($item);
 });
+
+it('renders a moved item fresh, so its inputs bind to its new position', function () {
+    $menu = Menu::factory()->create();
+    MenuItem::factory()->for($menu)->create(['label' => 'First', 'position' => 0]);
+    MenuItem::factory()->for($menu)->create(['label' => 'Second', 'position' => 1]);
+
+    $component = Livewire::test('pages::admin.menus.edit', ['menu' => $menu]);
+    $secondKey = $component->get('items.1.key');
+
+    $component
+        ->assertSeeHtml('wire:key="item-'.$secondKey.'-1"')
+        ->call('sortItem', $secondKey, 0)
+        ->assertSeeHtml('wire:key="item-'.$secondKey.'-0"')
+        ->assertSet('items.0.label', 'Second');
+});
