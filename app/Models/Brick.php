@@ -2,26 +2,29 @@
 
 namespace App\Models;
 
+use App\Bricks\Brickable;
 use App\Bricks\BrickRegistry;
 use App\Bricks\BrickType;
 use Database\Factories\BrickFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
- * @property int $page_id
+ * @property string $brickable_type
+ * @property int $brickable_id
  * @property string $type
  * @property array<string, mixed> $data
+ * @property array<string, mixed>|null $settings
  * @property int $position
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read Page $page
+ * @property-read Model&Brickable $brickable
  */
-#[Fillable(['type', 'data', 'position'])]
+#[Fillable(['type', 'data', 'settings', 'position'])]
 class Brick extends Model
 {
     /** @use HasFactory<BrickFactory> */
@@ -34,6 +37,7 @@ class Brick extends Model
     {
         return [
             'data' => 'array',
+            'settings' => 'array',
             'position' => 'integer',
         ];
     }
@@ -47,10 +51,22 @@ class Brick extends Model
     }
 
     /**
-     * @return BelongsTo<Page, $this>
+     * The brick type when it may be shown on the website, null when it no longer exists or its feature is off.
      */
-    public function page(): BelongsTo
+    public function renderableDefinition(): ?BrickType
     {
-        return $this->belongsTo(Page::class);
+        $definition = $this->definition();
+
+        return $definition?->isAvailable() ? $definition : null;
+    }
+
+    /**
+     * The page or blog the brick is part of.
+     *
+     * @return MorphTo<Model, $this>
+     */
+    public function brickable(): MorphTo
+    {
+        return $this->morphTo();
     }
 }

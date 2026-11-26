@@ -2,7 +2,7 @@
 
 namespace App\Bricks;
 
-use App\Bricks\Fields\Markdown;
+use App\Fields\Markdown;
 
 class TextBrick extends BaseBrick
 {

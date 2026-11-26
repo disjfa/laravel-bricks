@@ -2,8 +2,8 @@
 
 namespace App\Bricks;
 
-use App\Bricks\Fields\Text;
-use App\Bricks\Fields\Textarea;
+use App\Fields\Text;
+use App\Fields\Textarea;
 
 class QuoteBrick extends BaseBrick
 {

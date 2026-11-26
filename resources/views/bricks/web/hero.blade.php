@@ -1,7 +1,10 @@
 @php($hasImage = filled($data['image_url'] ?? null))
+@php($isFullWidth = ($width ?? null) === App\Enums\BrickWidth::Full)
 
 <section @class([
-    'relative -mx-6 overflow-hidden rounded-2xl px-6 py-20 text-center sm:-mx-12 sm:px-12',
+    'relative overflow-hidden px-6 py-20 text-center sm:px-12',
+    '-mx-6 rounded-2xl sm:-mx-12' => ! $isFullWidth,
+    '-mx-6 sm:py-28' => $isFullWidth,
     'bg-linear-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-950' => ! $hasImage,
     'bg-zinc-900 text-white' => $hasImage,
 ])>

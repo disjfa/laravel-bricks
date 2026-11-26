@@ -17,7 +17,8 @@ class BrickFactory extends Factory
     public function definition(): array
     {
         return [
-            'page_id' => Page::factory(),
+            'brickable_type' => Page::class,
+            'brickable_id' => Page::factory(),
             'type' => 'text',
             'data' => ['body' => fake()->paragraph()],
             'position' => 0,

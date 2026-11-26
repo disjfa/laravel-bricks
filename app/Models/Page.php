@@ -2,17 +2,18 @@
 
 namespace App\Models;
 
+use App\Bricks\Brickable;
+use App\Concerns\HasBricks;
+use App\Concerns\HasSeo;
+use App\Concerns\PublishedTrait;
+use App\Enums\PublishStatus;
 use Database\Factories\PageFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Scope;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Spatie\Image\Enums\Fit;
-use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Sluggable\HasSlug;
@@ -22,33 +23,31 @@ use Spatie\Sluggable\SlugOptions;
  * @property int $id
  * @property string $title
  * @property string $slug
+ * @property string|null $meta_title
  * @property string|null $meta_description
+ * @property string|null $meta_image
+ * @property bool $noindex
+ * @property PublishStatus $status
  * @property Carbon|null $published_at
+ * @property Carbon|null $published_until
+ * @property int $seqnr
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Collection<int, Brick> $bricks
  * @property-read Collection<int, Media> $media
  */
-#[Fillable(['title', 'slug', 'meta_description', 'published_at'])]
-class Page extends Model implements HasMedia
+#[Fillable(['title', 'slug', 'meta_title', 'meta_description', 'meta_image', 'noindex', 'status', 'published_at', 'published_until', 'seqnr'])]
+class Page extends Model implements Brickable
 {
+    use HasBricks;
+
     /** @use HasFactory<PageFactory> */
     use HasFactory;
 
+    use HasSeo;
     use HasSlug;
     use InteractsWithMedia;
-
-    public const string MediaCollection = 'media';
-
-    /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'published_at' => 'datetime',
-        ];
-    }
+    use PublishedTrait;
 
     public function registerMediaCollections(): void
     {
@@ -73,32 +72,30 @@ class Page extends Model implements HasMedia
             ->doNotGenerateSlugsOnUpdate();
     }
 
-    /**
-     * @return HasMany<Brick, $this>
-     */
-    public function bricks(): HasMany
+    public function adminSection(): string
     {
-        return $this->hasMany(Brick::class)->orderBy('position');
+        return 'pages';
     }
 
-    /**
-     * @param  Builder<Page>  $query
-     */
-    #[Scope]
-    protected function published(Builder $query): void
+    public function publicPath(): string
     {
-        $query
-            ->whereNotNull('published_at')
-            ->where('published_at', '<=', now());
-    }
-
-    public function isPublished(): bool
-    {
-        return $this->published_at !== null && $this->published_at->isPast();
+        return '/'.$this->slug;
     }
 
     public function url(): string
     {
         return url($this->slug);
+    }
+
+    /**
+     * The home page uses the default meta title as is.
+     */
+    public function seoTitle(): string
+    {
+        if (blank($this->meta_title) && $this->slug === 'home') {
+            return Setting::metaTitle();
+        }
+
+        return filled($this->meta_title) ? $this->meta_title : $this->title.' - '.Setting::metaTitle();
     }
 }

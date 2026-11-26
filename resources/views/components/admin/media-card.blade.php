@@ -23,6 +23,11 @@
                         <flux:icon name="document-text" variant="micro" />
                         <span class="truncate">{{ $media->model->title }}</span>
                     </flux:link>
+                @elseif ($media->model instanceof App\Models\Blog)
+                    <flux:link size="sm" :href="route('admin.blogs.media', $media->model)" wire:navigate class="mt-1 flex items-center gap-1 text-sm">
+                        <flux:icon name="newspaper" variant="micro" />
+                        <span class="truncate">{{ $media->model->title }}</span>
+                    </flux:link>
                 @else
                     <flux:text size="sm" class="mt-1">{{ __('Not attached to a page') }}</flux:text>
                 @endif

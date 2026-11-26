@@ -2,7 +2,7 @@
 
 namespace App\Bricks;
 
-use App\Bricks\Fields\Field;
+use App\Fields\Field;
 use Illuminate\Validation\Validator;
 
 /**
@@ -29,6 +29,11 @@ interface BrickType
     public function order(): int;
 
     /**
+     * Whether the brick can be added and is shown on the website, false when its feature is turned off.
+     */
+    public function isAvailable(): bool;
+
+    /**
      * The fields an editor fills in. They define the data the website view receives.
      *
      * @return array<int, Field>
@@ -51,7 +56,25 @@ interface BrickType
     public function validator(array $data): Validator;
 
     /**
-     * The Blade view that renders the brick on the website. It receives the validated $data.
+     * Settings that change how the brick is shown rather than what it shows, like its width.
+     * They are edited in the brick settings modal.
+     *
+     * @return array<int, Field>
+     */
+    public function settings(): array;
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function settingsDefaults(): array;
+
+    /**
+     * @param  array<string, mixed>  $settings
+     */
+    public function settingsValidator(array $settings): Validator;
+
+    /**
+     * The Blade view that renders the brick on the website. It receives the validated $data and $settings.
      */
     public function view(): string;
 }

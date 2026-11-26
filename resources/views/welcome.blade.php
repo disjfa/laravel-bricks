@@ -1,7 +1,7 @@
 <x-layouts::site>
     <section class="mx-auto max-w-3xl px-6 py-24 text-center">
         <flux:heading size="xl" level="1" class="text-4xl! font-bold! tracking-tight">
-            {{ config('app.name') }}
+            {{ App\Models\Setting::siteTitle() }}
         </flux:heading>
 
         <flux:text class="mt-4 text-lg">

@@ -47,6 +47,16 @@ class BrickRegistry
         return array_keys($this->types);
     }
 
+    /**
+     * The brick types that can be added right now.
+     *
+     * @return array<string, BrickType>
+     */
+    public function available(): array
+    {
+        return array_filter($this->types, fn (BrickType $type) => $type->isAvailable());
+    }
+
     public function find(string $key): ?BrickType
     {
         return $this->types[$key] ?? null;

@@ -1,13 +1,20 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<title>
-    {{ filled($title ?? null) ? $title.' - '.config('app.name', 'Laravel') : config('app.name', 'Laravel') }}
-</title>
+@if ($seo ?? false)
+    {{-- The website: title, description and social tags from romanzipp/laravel-seo, see layouts/site. --}}
+    {{ seo()->render() }}
+@else
+    <title>
+        {{ filled($title ?? null) ? $title.' - '.App\Models\Setting::metaTitle() : App\Models\Setting::metaTitle() }}
+    </title>
+@endif
 
-<link rel="icon" href="/favicon.ico" sizes="any">
-<link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+@include('partials.app-icons')
+
+@if ($seo ?? false)
+    @include('partials.pwa')
+@endif
 
 @fonts
 

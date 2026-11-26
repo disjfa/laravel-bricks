@@ -1,4 +1,4 @@
-{{-- Pick an image from the page's media panel. Expects $field (the wire:model path), $imageMedia and $page. --}}
+{{-- Pick an image from the media panel. Expects $field (the wire:model path), $imageMedia and $mediaUrl (the media panel). --}}
 <flux:dropdown position="bottom" align="end">
     <flux:button icon="photo" :aria-label="__('Choose from media')" />
 
@@ -9,7 +9,7 @@
                 <span class="truncate">{{ $item['name'] }}</span>
             </flux:menu.item>
         @empty
-            <flux:menu.item icon="arrow-up-tray" :href="route('admin.pages.media', $page)" wire:navigate>
+            <flux:menu.item icon="arrow-up-tray" :href="$mediaUrl" wire:navigate>
                 {{ __('Upload images in the media panel') }}
             </flux:menu.item>
         @endforelse

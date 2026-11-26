@@ -66,7 +66,7 @@ new #[Layout('layouts::admin'), Title('Pages')] class extends Component {
                         ->orWhere('slug', 'like', "%{$search}%");
                 });
             })
-            ->latest('updated_at')
+            ->ordered()
             ->paginate(15);
     }
 }; ?>
@@ -91,6 +91,7 @@ new #[Layout('layouts::admin'), Title('Pages')] class extends Component {
 
     <flux:table :paginate="$this->pages">
         <flux:table.columns>
+            <flux:table.column class="w-0">#</flux:table.column>
             <flux:table.column>{{ __('Title') }}</flux:table.column>
             <flux:table.column>{{ __('Slug') }}</flux:table.column>
             <flux:table.column>{{ __('Status') }}</flux:table.column>
@@ -102,6 +103,8 @@ new #[Layout('layouts::admin'), Title('Pages')] class extends Component {
         <flux:table.rows>
             @forelse ($this->pages as $page)
                 <flux:table.row :key="$page->id">
+                    <flux:table.cell class="tabular-nums">{{ $page->seqnr }}</flux:table.cell>
+
                     <flux:table.cell variant="strong">
                         <a href="{{ route('admin.pages.edit', $page) }}" wire:navigate class="hover:underline">{{ $page->title }}</a>
                     </flux:table.cell>
@@ -109,11 +112,7 @@ new #[Layout('layouts::admin'), Title('Pages')] class extends Component {
                     <flux:table.cell class="font-mono text-xs">/{{ $page->slug }}</flux:table.cell>
 
                     <flux:table.cell>
-                        @if ($page->isPublished())
-                            <flux:badge size="sm" color="green" inset="top bottom">{{ __('Published') }}</flux:badge>
-                        @else
-                            <flux:badge size="sm" color="zinc" inset="top bottom">{{ __('Draft') }}</flux:badge>
-                        @endif
+                        <x-admin.publication-badge :model="$page" inset="top bottom" />
                     </flux:table.cell>
 
                     <flux:table.cell>{{ $page->bricks_count }}</flux:table.cell>
@@ -155,7 +154,7 @@ new #[Layout('layouts::admin'), Title('Pages')] class extends Component {
                 </flux:table.row>
             @empty
                 <flux:table.row>
-                    <flux:table.cell colspan="6" class="py-8 text-center">{{ __('No pages yet.') }}</flux:table.cell>
+                    <flux:table.cell colspan="7" class="py-8 text-center">{{ __('No pages yet.') }}</flux:table.cell>
                 </flux:table.row>
             @endforelse
         </flux:table.rows>

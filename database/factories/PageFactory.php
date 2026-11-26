@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\PublishStatus;
 use App\Models\Page;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -22,6 +23,7 @@ class PageFactory extends Factory
             'title' => $title,
             'slug' => Str::slug($title),
             'meta_description' => fake()->sentence(),
+            'status' => PublishStatus::Concept,
             'published_at' => null,
         ];
     }
@@ -29,6 +31,7 @@ class PageFactory extends Factory
     public function published(): static
     {
         return $this->state(fn (array $attributes) => [
+            'status' => PublishStatus::Active,
             'published_at' => now()->subDay(),
         ]);
     }

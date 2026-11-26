@@ -24,7 +24,7 @@
                 </flux:sidebar.item>
             </flux:sidebar.nav>
 
-            <x-desktop-user-menu class="hidden lg:block" :showTeam="false" />
+            <x-desktop-user-menu class="hidden lg:block" />
         </flux:sidebar>
 
         <flux:header class="lg:hidden">
@@ -32,11 +32,11 @@
 
             <flux:spacer />
 
-            <x-desktop-user-menu :showTeam="false" />
+            <x-desktop-user-menu />
         </flux:header>
 
-        {{-- Pages that mark themselves data-full-bleed (the brick editor) manage their own spacing. --}}
-        <flux:main class="has-[[data-full-bleed]]:p-0!">
+        {{-- 16px padding at every size. Screens that mark themselves data-full-bleed (<x-admin.screen>) manage their own spacing. --}}
+        <flux:main class="p-4! has-[[data-full-bleed]]:p-0!">
             {{ $slot }}
         </flux:main>
 

@@ -2,8 +2,8 @@
 
 namespace App\Bricks;
 
-use App\Bricks\Fields\Select;
-use App\Bricks\Fields\Text;
+use App\Fields\Select;
+use App\Fields\Text;
 
 class HeadingBrick extends BaseBrick
 {
@@ -31,7 +31,7 @@ class HeadingBrick extends BaseBrick
     {
         return [
             Text::make('text')->label(__('Heading'))->required(),
-            Select::make('level')->label(__('Level'))->required()->options([2 => 'H2', 3 => 'H3', 4 => 'H4']),
+            Select::make('level')->label(__('Level'))->required()->options([1 => 'H1', 2 => 'H2', 3 => 'H3', 4 => 'H4']),
         ];
     }
 }

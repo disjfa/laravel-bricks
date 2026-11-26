@@ -6,7 +6,7 @@
     @endif
 
     <flux:menu>
-        @foreach (app(App\Bricks\BrickRegistry::class)->all() as $brickType)
+        @foreach (app(App\Bricks\BrickRegistry::class)->available() as $brickType)
             <flux:menu.item
                 :icon="$brickType->icon()"
                 wire:click="addBrick('{{ $brickType->key() }}'{{ $position === null ? '' : ', '.$position }})"

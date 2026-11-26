@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 @import '../../vendor/livewire/flux/dist/flux.css';
 @import 'easymde/dist/easymde.min.css' layer(components);
+@import 'tom-select/dist/css/tom-select.css' layer(components);
 
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -117,3 +118,79 @@ select:focus[data-flux-control] {
     }
 }
 
+
+/*
+ * Tom Select (resources/js/tom-select.js) on Flux selects. The wrapper gets the classes of the Flux select,
+ * so it already has its border, background, size and colors. The control inside is made transparent.
+ */
+@layer components {
+    .ts-wrapper.single {
+        @apply relative flex cursor-pointer items-center py-0;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23a1a1aa'%3E%3Cpath fill-rule='evenodd' d='M10.53 3.47a.75.75 0 0 0-1.06 0L6.22 6.72a.75.75 0 0 0 1.06 1.06L10 5.06l2.72 2.72a.75.75 0 1 0 1.06-1.06l-3.25-3.25Zm-4.31 9.81 3.25 3.25a.75.75 0 0 0 1.06 0l3.25-3.25a.75.75 0 1 0-1.06-1.06L10 14.94l-2.72-2.72a.75.75 0 0 0-1.06 1.06Z' clip-rule='evenodd'/%3E%3C/svg%3E");
+        background-position: right 0.625rem center;
+        background-repeat: no-repeat;
+        background-size: 1.25rem;
+    }
+
+    .ts-wrapper.single .ts-control,
+    .ts-wrapper.single.input-active .ts-control,
+    .ts-wrapper.single.has-items .ts-control {
+        @apply min-h-0 w-full cursor-pointer border-0 bg-transparent p-0 shadow-none;
+        color: inherit;
+        font: inherit;
+        line-height: inherit;
+    }
+
+    .ts-wrapper.single .ts-control::after {
+        display: none;
+    }
+
+    .ts-wrapper .ts-control > input {
+        color: inherit;
+        font: inherit;
+    }
+
+    .ts-wrapper .ts-control > input::placeholder {
+        @apply text-zinc-400;
+    }
+
+    .ts-wrapper.focus {
+        @apply ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground outline-hidden;
+    }
+
+    .ts-wrapper.disabled {
+        @apply cursor-default opacity-75;
+    }
+
+    .ts-wrapper .ts-dropdown {
+        @apply z-50 mt-1 overflow-hidden rounded-lg border border-zinc-200 bg-white text-sm text-zinc-700 shadow-lg dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-100;
+        left: 0;
+    }
+
+    .ts-wrapper .ts-dropdown .ts-dropdown-content {
+        @apply max-h-72 p-1;
+    }
+
+    .ts-wrapper .ts-dropdown .option,
+    .ts-wrapper .ts-dropdown .no-results {
+        @apply rounded-md px-2 py-1.5;
+    }
+
+    .ts-wrapper .ts-dropdown .option.active {
+        @apply bg-zinc-100 text-zinc-900 dark:bg-zinc-600 dark:text-white;
+    }
+
+    .ts-wrapper .ts-dropdown .option.selected {
+        @apply font-medium;
+    }
+
+    .ts-wrapper .ts-dropdown .option[aria-disabled='true'],
+    .ts-wrapper .ts-dropdown .option.disabled {
+        @apply hidden;
+    }
+}
+
+/* Vanilla Calendar Pro (resources/js/date-picker.js): above modals' content and headers. */
+[data-vc=calendar][data-vc-input] {
+    z-index: 60;
+}
