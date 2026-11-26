@@ -4,6 +4,7 @@ use App\Bricks\BrickRegistry;
 use App\Features\Blogs;
 use App\Features\Forms;
 use App\Features\SiteMenu;
+use App\MenuLinks\MenuLinkRegistry;
 use App\Models\Blog;
 use App\Models\Brick;
 use App\Models\Form;
@@ -43,10 +44,11 @@ describe('blogs turned off', function () {
         $this->get('/news')->assertOk()->assertDontSee('Latest news');
     });
 
-    it('hides menu items that link to a blog', function () {
+    it('hides menu items that link to a blog and does not offer the blog link type', function () {
         $item = MenuItem::factory()->forBlog(Blog::factory()->published()->create())->create();
 
-        expect($item->url())->toBeNull();
+        expect($item->url())->toBeNull()
+            ->and(app(MenuLinkRegistry::class)->available())->not->toHaveKey('blog');
     });
 });
 
@@ -78,7 +80,7 @@ describe('site menu turned off', function () {
 
     it('shows no menu items on the website', function () {
         $menu = Menu::factory()->main()->create();
-        MenuItem::factory()->for($menu)->create(['label' => 'Docs', 'url' => '/docs']);
+        MenuItem::factory()->for($menu)->url('/docs')->create(['label' => 'Docs']);
         Page::factory()->published()->create(['slug' => 'home']);
 
         $this->get(route('home'))->assertOk()->assertDontSee('Docs');

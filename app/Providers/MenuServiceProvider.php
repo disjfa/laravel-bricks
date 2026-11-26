@@ -53,7 +53,7 @@ class MenuServiceProvider extends ServiceProvider
             }
 
             foreach (MenuModel::visibleItems($handle) as $item) {
-                $menu->add(MenuLink::to($item->url(), $item->label)->exact());
+                $menu->add(MenuLink::to($item->url(), $item->label)->exact()->newTab($item->opensInNewTab()));
             }
 
             return $menu->setActiveFromRequest();

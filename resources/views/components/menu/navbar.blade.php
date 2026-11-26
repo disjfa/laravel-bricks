@@ -6,6 +6,8 @@
             :icon="$link->iconName()"
             :href="$link->url()"
             :current="$link->isCurrent()"
+            :target="$link->opensInNewTab() ? '_blank' : null"
+            :rel="$link->opensInNewTab() ? 'noopener' : null"
         >
             {{ $link->text() }}
         </flux:navbar.item>

@@ -57,7 +57,7 @@
 
                                 <flux:navlist :aria-label="__('Menu')">
                                     @foreach ($mainMenu as $link)
-                                        <flux:navlist.item :href="$link->url()" :icon="$link->iconName()" :current="$link->isCurrent()">{{ $link->text() }}</flux:navlist.item>
+                                        <flux:navlist.item :href="$link->url()" :icon="$link->iconName()" :current="$link->isCurrent()" :target="$link->opensInNewTab() ? '_blank' : null" :rel="$link->opensInNewTab() ? 'noopener' : null">{{ $link->text() }}</flux:navlist.item>
                                     @endforeach
                                 </flux:navlist>
                             </nav>
@@ -76,7 +76,7 @@
             @if ($footerMenu->count() > 0)
                 <nav class="flex flex-wrap justify-center gap-x-6 gap-y-2" data-test="footer-menu">
                     @foreach ($footerMenu as $link)
-                        <a href="{{ $link->url() }}" class="hover:text-zinc-800 hover:underline dark:hover:text-white">{{ $link->text() }}</a>
+                        <a href="{{ $link->url() }}" @if ($link->opensInNewTab()) target="_blank" rel="noopener" @endif class="hover:text-zinc-800 hover:underline dark:hover:text-white">{{ $link->text() }}</a>
                     @endforeach
                 </nav>
             @endif

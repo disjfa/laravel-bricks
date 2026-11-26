@@ -2,32 +2,29 @@
 
 namespace App\Models;
 
-use App\Enums\MenuItemType;
-use App\Features\Blogs;
+use App\MenuLinks\MenuLinkRegistry;
+use App\MenuLinks\MenuLinkType;
 use Database\Factories\MenuItemFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
-use Laravel\Pennant\Feature;
 
 /**
+ * One link of a menu. Like a brick, its type (App\MenuLinks) decides what it links to and which fields it has.
+ *
  * @property int $id
  * @property int $menu_id
  * @property string $label
- * @property MenuItemType $type
- * @property int|null $page_id
- * @property int|null $blog_id
- * @property string|null $url
+ * @property string $type
+ * @property array<string, mixed> $data
  * @property int $position
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Menu $menu
- * @property-read Page|null $page
- * @property-read Blog|null $blog
  */
-#[Fillable(['label', 'type', 'page_id', 'blog_id', 'url', 'position'])]
+#[Fillable(['label', 'type', 'data', 'position'])]
 class MenuItem extends Model
 {
     /** @use HasFactory<MenuItemFactory> */
@@ -39,7 +36,7 @@ class MenuItem extends Model
     protected function casts(): array
     {
         return [
-            'type' => MenuItemType::class,
+            'data' => 'array',
             'position' => 'integer',
         ];
     }
@@ -53,36 +50,26 @@ class MenuItem extends Model
     }
 
     /**
-     * @return BelongsTo<Page, $this>
+     * The link type, or null when that type no longer exists.
      */
-    public function page(): BelongsTo
+    public function definition(): ?MenuLinkType
     {
-        return $this->belongsTo(Page::class);
+        return app(MenuLinkRegistry::class)->find($this->type);
     }
 
     /**
-     * @return BelongsTo<Blog, $this>
-     */
-    public function blog(): BelongsTo
-    {
-        return $this->belongsTo(Blog::class);
-    }
-
-    /**
-     * Where the item links to, or null when it points to something that is not published
-     * (or to a blog while blogs are turned off).
+     * Where the item links to, or null when it should not be shown: its type no longer exists or is turned off,
+     * or it points to something that is not published.
      */
     public function url(): ?string
     {
-        return match ($this->type) {
-            MenuItemType::Page => $this->page?->isPublished() ? $this->pageUrl($this->page) : null,
-            MenuItemType::Blog => Feature::active(Blogs::class) && $this->blog?->isPublished() ? $this->blog->url() : null,
-            MenuItemType::Url => $this->url,
-        };
+        $definition = $this->definition();
+
+        return $definition?->isAvailable() ? $definition->url($this->data) : null;
     }
 
-    protected function pageUrl(Page $page): string
+    public function opensInNewTab(): bool
     {
-        return $page->slug === 'home' ? route('home') : $page->url();
+        return $this->definition()?->opensInNewTab($this->data) ?? false;
     }
 }

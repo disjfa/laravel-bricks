@@ -19,10 +19,11 @@ return new class extends Migration
             $table->id();
             $table->foreignId('menu_id')->constrained()->cascadeOnDelete();
             $table->string('label');
+
+            // The link type (App\MenuLinks) and what it links to, like the page id or the url
             $table->string('type');
-            $table->foreignId('page_id')->nullable()->constrained()->cascadeOnDelete();
-            $table->foreignId('blog_id')->nullable()->constrained()->cascadeOnDelete();
-            $table->string('url', 2048)->nullable();
+            $table->json('data');
+
             $table->unsignedInteger('position')->default(0);
             $table->timestamps();
 

@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Enums\MenuItemType;
 use App\Models\Menu;
 use App\Models\Page;
 use Illuminate\Database\Seeder;
@@ -29,8 +28,8 @@ class MenuSeeder extends Seeder
 
             $menu->items()->create([
                 'label' => $label,
-                'type' => MenuItemType::Page,
-                'page_id' => $pages[$slug]->id,
+                'type' => 'page',
+                'data' => ['page_id' => $pages[$slug]->id],
                 'position' => $menu->items()->count(),
             ]);
         }

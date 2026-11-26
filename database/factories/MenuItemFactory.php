@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Enums\MenuItemType;
 use App\Models\Blog;
 use App\Models\Menu;
 use App\Models\MenuItem;
@@ -22,27 +21,33 @@ class MenuItemFactory extends Factory
         return [
             'menu_id' => Menu::factory(),
             'label' => fake()->word(),
-            'type' => MenuItemType::Url,
-            'url' => fake()->url(),
+            'type' => 'url',
+            'data' => ['url' => fake()->url(), 'new_tab' => false],
             'position' => 0,
         ];
+    }
+
+    public function url(string $url, bool $newTab = false): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'type' => 'url',
+            'data' => ['url' => $url, 'new_tab' => $newTab],
+        ]);
     }
 
     public function forPage(Page $page): static
     {
         return $this->state(fn (array $attributes) => [
-            'type' => MenuItemType::Page,
-            'page_id' => $page->id,
-            'url' => null,
+            'type' => 'page',
+            'data' => ['page_id' => $page->id],
         ]);
     }
 
     public function forBlog(Blog $blog): static
     {
         return $this->state(fn (array $attributes) => [
-            'type' => MenuItemType::Blog,
-            'blog_id' => $blog->id,
-            'url' => null,
+            'type' => 'blog',
+            'data' => ['blog_id' => $blog->id],
         ]);
     }
 }

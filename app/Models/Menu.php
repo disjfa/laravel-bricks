@@ -47,7 +47,7 @@ class Menu extends Model
     {
         $menu = static::query()
             ->where('handle', $handle)
-            ->with(['items.page', 'items.blog'])
+            ->with('items')
             ->first();
 
         if (! $menu) {
