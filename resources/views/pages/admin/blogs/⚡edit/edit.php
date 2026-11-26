@@ -4,6 +4,7 @@ use App\Bricks\Brickable;
 use App\Livewire\Concerns\EditsBricks;
 use App\Models\Blog;
 use Livewire\Attributes\Layout;
+use Illuminate\View\View;
 use Livewire\Component;
 
 new #[Layout('layouts::admin')] class extends Component {
@@ -25,10 +26,8 @@ new #[Layout('layouts::admin')] class extends Component {
         return $this->blog;
     }
 
-    public function render()
+    public function render(): View
     {
         return $this->view()->title(__('Edit :title', ['title' => $this->blog->title]));
     }
-}; ?>
-
-@include('partials.admin.brick-editor', ['model' => $blog, 'bricks' => $bricks, 'imageMedia' => $this->imageMedia])
+}; 

@@ -34,7 +34,7 @@ trait EditsBricks
 
     protected function loadBricks(): void
     {
-        $this->bricks = $this->brickable()->bricks
+        $this->bricks = $this->brickable()->bricks()->get()
             ->filter(fn (Brick $brick) => $brick->definition() !== null)
             ->map(fn (Brick $brick) => [
                 'key' => (string) Str::uuid(),
@@ -186,7 +186,7 @@ trait EditsBricks
             $brickType = $this->brickType($brick['type']);
             $validated = [];
 
-            foreach (['data' => $brickType->validator($brick['data']), 'settings' => $brickType->settingsValidator($brick['settings'] ?? [])] as $part => $validator) {
+            foreach (['data' => $brickType->validator($brick['data']), 'settings' => $brickType->settingsValidator($brick['settings'])] as $part => $validator) {
                 foreach ($validator->errors()->messages() as $field => $messages) {
                     $errors["bricks.{$index}.{$part}.{$field}"] = $messages;
                 }

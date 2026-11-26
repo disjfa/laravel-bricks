@@ -10,6 +10,8 @@ use Spatie\MediaLibrary\HasMedia;
 /**
  * A model that is built from bricks in the admin (pages and blogs), with its own media panel.
  * Implemented with App\Concerns\HasBricks.
+ *
+ * @mixin Model
  */
 interface Brickable extends HasMedia
 {

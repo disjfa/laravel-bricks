@@ -115,12 +115,12 @@ document.addEventListener('livewire:init', () => {
     // Pick up new selects after a morph.
     Livewire.hook('morphed', ({ el }) => enhance(el));
 
-    // wire:model sets the value of the select after the morph, sync once the request is done.
-    Livewire.hook('commit', ({ component, succeed }) => {
-        succeed(() => {
-            requestAnimationFrame(() => {
-                enhance(component.el);
-                syncAll(component.el);
+    // wire:model sets the value of the select after the morph, sync once the update is rendered.
+    Livewire.interceptMessage(({ message, onSuccess }) => {
+        onSuccess(({ onRender }) => {
+            onRender(() => {
+                enhance(message.component.el);
+                syncAll(message.component.el);
             });
         });
     });

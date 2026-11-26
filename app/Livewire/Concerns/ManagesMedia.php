@@ -82,7 +82,11 @@ trait ManagesMedia
     #[Computed]
     public function mediaItems(): Collection
     {
-        return $this->brickable()->media()
+        $brickable = $this->brickable();
+
+        return Media::query()
+            ->where('model_type', $brickable->getMorphClass())
+            ->where('model_id', $brickable->getKey())
             ->where('collection_name', Brickable::MediaCollection)
             ->latest('id')
             ->get();

@@ -9,5 +9,21 @@ parameters:
         - config/
         - database/
         - routes/
+        # The classes of multi-file Livewire components (⚡name/name.php), not the Blade templates.
+        - resources/views/
+
+    excludePaths:
+        analyse:
+            - resources/views/*.blade.php
+
+    ignoreErrors:
+        # Livewire compiles a multi-file component before it runs it: the bare "new class" becomes the returned
+        # component and a view() method is injected (see Livewire\Compiler\Parser). PHPStan reads the file as is.
+        -
+            identifier: expr.resultUnused
+            path: resources/views/*
+        -
+            message: '#^Call to an undefined method Livewire\\Component@anonymous/.+::view\(\)\.$#'
+            path: resources/views/*
 
     level: 7

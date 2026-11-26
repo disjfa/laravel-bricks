@@ -1,0 +1,1 @@
+@include('partials.admin.brick-editor', ['model' => $page, 'bricks' => $bricks, 'imageMedia' => $this->imageMedia])

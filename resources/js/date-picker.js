@@ -133,10 +133,13 @@ document.addEventListener('livewire:init', () => {
 
     Livewire.hook('morphed', ({ el }) => enhance(el));
 
-    Livewire.hook('commit', ({ component, succeed }) => {
-        succeed(() => requestAnimationFrame(() => {
-            enhance(component.el);
-            syncAll(component.el);
-        }));
+    // Show values the server set, once the update is rendered.
+    Livewire.interceptMessage(({ message, onSuccess }) => {
+        onSuccess(({ onRender }) => {
+            onRender(() => {
+                enhance(message.component.el);
+                syncAll(message.component.el);
+            });
+        });
     });
 });

@@ -4,6 +4,7 @@ use App\Bricks\Brickable;
 use App\Livewire\Concerns\ManagesMedia;
 use App\Models\Page;
 use Livewire\Attributes\Layout;
+use Illuminate\View\View;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -25,12 +26,8 @@ new #[Layout('layouts::admin')] class extends Component {
         return $this->page;
     }
 
-    public function render()
+    public function render(): View
     {
         return $this->view()->title(__(':title media', ['title' => $this->page->title]));
     }
-}; ?>
-
-<x-admin.content-screen :model="$page" current="media">
-    @include('partials.admin.media-panel', ['mediaItems' => $this->mediaItems])
-</x-admin.content-screen>
+}; 
