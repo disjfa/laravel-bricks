@@ -1,60 +1,3 @@
-<?php
-
-use App\Models\Form;
-use Flux\Flux;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Livewire\Attributes\Computed;
-use Livewire\Attributes\Layout;
-use Livewire\Attributes\Title;
-use Livewire\Component;
-use Livewire\WithPagination;
-
-new #[Layout('layouts::admin'), Title('Forms')] class extends Component {
-    use WithPagination;
-
-    public string $name = '';
-
-    public function createForm(): void
-    {
-        $this->authorize('create', Form::class);
-
-        $validated = $this->validate([
-            'name' => ['required', 'string', 'max:255'],
-        ]);
-
-        $form = Form::query()->create($validated);
-
-        $this->redirectRoute('admin.forms.edit', ['form' => $form], navigate: true);
-    }
-
-    public function deleteForm(int $formId): void
-    {
-        $form = Form::query()->findOrFail($formId);
-
-        $this->authorize('delete', $form);
-
-        $form->delete();
-
-        Flux::modal("delete-form-{$formId}")->close();
-
-        Flux::toast(variant: 'success', text: __('Form deleted.'));
-    }
-
-    /**
-     * @return LengthAwarePaginator<int, Form>
-     */
-    #[Computed]
-    public function forms(): LengthAwarePaginator
-    {
-        $this->authorize('viewAny', Form::class);
-
-        return Form::query()
-            ->withCount(['fields', 'submissions'])
-            ->orderBy('name')
-            ->paginate(15);
-    }
-}; ?>
-
 <div class="space-y-6">
     <div class="flex flex-wrap items-center justify-between gap-4">
         <div>
@@ -62,18 +5,22 @@ new #[Layout('layouts::admin'), Title('Forms')] class extends Component {
             <flux:text class="mt-1">{{ __('Build forms and place them on a page with the form brick.') }}</flux:text>
         </div>
 
-        @can('create', App\Models\Form::class)
-            <flux:modal.trigger name="create-form">
-                <flux:button variant="primary" icon="plus" data-test="new-form-button">{{ __('New form') }}</flux:button>
-            </flux:modal.trigger>
-        @endcan
+        <div class="flex items-center gap-2">
+            <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" :placeholder="__('Search forms...')" class="max-w-xs" clearable />
+
+            @can('create', App\Models\Form::class)
+                <flux:modal.trigger name="create-form">
+                    <flux:button variant="primary" icon="plus" data-test="new-form-button">{{ __('New form') }}</flux:button>
+                </flux:modal.trigger>
+            @endcan
+        </div>
     </div>
 
     <flux:table :paginate="$this->forms">
         <flux:table.columns>
-            <flux:table.column>{{ __('Name') }}</flux:table.column>
+            <x-admin.sortable-column column="name" :direction="$this->sortDirection('name')">{{ __('Name') }}</x-admin.sortable-column>
             <flux:table.column>{{ __('Fields') }}</flux:table.column>
-            <flux:table.column>{{ __('Submissions') }}</flux:table.column>
+            <x-admin.sortable-column column="submissions" :direction="$this->sortDirection('submissions')">{{ __('Submissions') }}</x-admin.sortable-column>
             <flux:table.column></flux:table.column>
         </flux:table.columns>
 

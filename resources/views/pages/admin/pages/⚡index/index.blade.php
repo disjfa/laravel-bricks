@@ -1,76 +1,3 @@
-<?php
-
-use App\Models\Page;
-use Flux\Flux;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Livewire\Attributes\Computed;
-use Livewire\Attributes\Layout;
-use Livewire\Attributes\Title;
-use Livewire\Attributes\Url;
-use Livewire\Component;
-use Livewire\WithPagination;
-
-new #[Layout('layouts::admin'), Title('Pages')] class extends Component {
-    use WithPagination;
-
-    #[Url(except: '')]
-    public string $search = '';
-
-    public string $title = '';
-
-    public function updatedSearch(): void
-    {
-        $this->resetPage();
-    }
-
-    public function createPage(): void
-    {
-        $this->authorize('create', Page::class);
-
-        $validated = $this->validate([
-            'title' => ['required', 'string', 'max:255'],
-        ]);
-
-        $page = Page::query()->create($validated);
-
-        $this->redirectRoute('admin.pages.edit', ['page' => $page], navigate: true);
-    }
-
-    public function deletePage(int $pageId): void
-    {
-        $page = Page::query()->findOrFail($pageId);
-
-        $this->authorize('delete', $page);
-
-        $page->delete();
-
-        Flux::modal("delete-page-{$pageId}")->close();
-
-        Flux::toast(variant: 'success', text: __('Page deleted.'));
-    }
-
-    /**
-     * @return LengthAwarePaginator<int, Page>
-     */
-    #[Computed]
-    public function pages(): LengthAwarePaginator
-    {
-        $this->authorize('viewAny', Page::class);
-
-        return Page::query()
-            ->withCount('bricks')
-            ->when($this->search, function ($query, string $search) {
-                $query->where(function ($query) use ($search) {
-                    $query
-                        ->where('title', 'like', "%{$search}%")
-                        ->orWhere('slug', 'like', "%{$search}%");
-                });
-            })
-            ->ordered()
-            ->paginate(15);
-    }
-}; ?>
-
 <div class="space-y-6">
     <div class="flex flex-wrap items-center justify-between gap-4">
         <div>
@@ -91,12 +18,12 @@ new #[Layout('layouts::admin'), Title('Pages')] class extends Component {
 
     <flux:table :paginate="$this->pages">
         <flux:table.columns>
-            <flux:table.column class="w-0">#</flux:table.column>
-            <flux:table.column>{{ __('Title') }}</flux:table.column>
-            <flux:table.column>{{ __('Slug') }}</flux:table.column>
+            <x-admin.sortable-column column="seqnr" :direction="$this->sortDirection('seqnr')" class="w-0">#</x-admin.sortable-column>
+            <x-admin.sortable-column column="title" :direction="$this->sortDirection('title')">{{ __('Title') }}</x-admin.sortable-column>
+            <x-admin.sortable-column column="slug" :direction="$this->sortDirection('slug')">{{ __('Slug') }}</x-admin.sortable-column>
             <flux:table.column>{{ __('Status') }}</flux:table.column>
             <flux:table.column>{{ __('Bricks') }}</flux:table.column>
-            <flux:table.column>{{ __('Updated') }}</flux:table.column>
+            <x-admin.sortable-column column="updated_at" :direction="$this->sortDirection('updated_at')">{{ __('Updated') }}</x-admin.sortable-column>
             <flux:table.column></flux:table.column>
         </flux:table.columns>
 

@@ -103,6 +103,10 @@ Route::prefix('admin')
             ->can('manageSettings')
             ->name('settings');
 
+        Route::livewire('api-tokens', 'pages::admin.api-tokens')
+            ->can('manageApiTokens')
+            ->name('api-tokens');
+
         Route::livewire('media', 'pages::admin.media.index')
             ->can('viewAny', Media::class)
             ->name('media.index');

@@ -31,6 +31,7 @@ class MenuServiceProvider extends ServiceProvider
                 ->addIf(Gate::allows('viewAny', Media::class), MenuLink::toRoute('admin.media.index', __('Media'))->icon('photo'))
                 ->addIf(Gate::allows('viewAny', User::class), MenuLink::toRoute('admin.users.index', __('Users'))->icon('users'))
                 ->addIf(Gate::allows('manageSettings'), MenuLink::toRoute('admin.settings', __('Settings'))->icon('cog-6-tooth'))
+                ->addIf(Gate::allows('manageApiTokens'), MenuLink::toRoute('admin.api-tokens', __('API tokens'))->icon('key'))
                 ->setActiveFromRequest();
         });
 

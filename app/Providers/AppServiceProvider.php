@@ -5,9 +5,15 @@ namespace App\Providers;
 use App\Models\User;
 use App\Policies\MediaPolicy;
 use Carbon\CarbonImmutable;
+use Dedoc\Scramble\Scramble;
+use Dedoc\Scramble\Support\Generator\OpenApi;
+use Dedoc\Scramble\Support\Generator\SecurityScheme;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Laravel\Pennant\Feature;
@@ -32,6 +38,19 @@ class AppServiceProvider extends ServiceProvider
         $this->configureDefaults();
         $this->configureGates();
         $this->configureFeatures();
+        $this->configureApi();
+    }
+
+    /**
+     * The content API (routes/api.php): a rate limit per token user, and the bearer token in the OpenAPI document.
+     */
+    protected function configureApi(): void
+    {
+        RateLimiter::for('api', fn (Request $request) => Limit::perMinute(120)->by($request->user()?->id ?: $request->ip()));
+
+        Scramble::configure()->withDocumentTransformers(function (OpenApi $openApi): void {
+            $openApi->secure(SecurityScheme::http('bearer'));
+        });
     }
 
     /**
@@ -74,6 +93,10 @@ class AppServiceProvider extends ServiceProvider
     {
         Gate::define('accessAdmin', fn (User $user): bool => $user->isAdmin());
         Gate::define('manageSettings', fn (User $user): bool => $user->isAdmin());
+        Gate::define('manageApiTokens', fn (User $user): bool => $user->isAdmin());
+
+        // The OpenAPI document and its docs page (Scramble), open to everyone in the local environment.
+        Gate::define('viewApiDocs', fn (User $user): bool => $user->isAdmin());
 
         // The media model lives in the package, so its policy can not be auto-discovered.
         Gate::policy(Media::class, MediaPolicy::class);

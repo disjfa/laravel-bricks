@@ -1,47 +1,3 @@
-<?php
-
-use App\Models\User;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Livewire\Attributes\Computed;
-use Livewire\Attributes\Layout;
-use Livewire\Attributes\Title;
-use Livewire\Attributes\Url;
-use Livewire\Component;
-use Livewire\WithPagination;
-
-new #[Layout('layouts::admin'), Title('Users')] class extends Component {
-    use WithPagination;
-
-    #[Url(except: '')]
-    public string $search = '';
-
-    public function updatedSearch(): void
-    {
-        $this->resetPage();
-    }
-
-    /**
-     * @return LengthAwarePaginator<int, User>
-     */
-    #[Computed]
-    public function users(): LengthAwarePaginator
-    {
-        $this->authorize('viewAny', User::class);
-
-        return User::query()
-            ->with('roles')
-            ->when($this->search, function ($query, string $search) {
-                $query->where(function ($query) use ($search) {
-                    $query
-                        ->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
-                });
-            })
-            ->orderBy('name')
-            ->paginate(15);
-    }
-}; ?>
-
 <div class="space-y-6">
     <div class="flex flex-wrap items-center justify-between gap-4">
         <div>
@@ -54,10 +10,10 @@ new #[Layout('layouts::admin'), Title('Users')] class extends Component {
 
     <flux:table :paginate="$this->users">
         <flux:table.columns>
-            <flux:table.column>{{ __('Name') }}</flux:table.column>
-            <flux:table.column>{{ __('Email') }}</flux:table.column>
+            <x-admin.sortable-column column="name" :direction="$this->sortDirection('name')">{{ __('Name') }}</x-admin.sortable-column>
+            <x-admin.sortable-column column="email" :direction="$this->sortDirection('email')">{{ __('Email') }}</x-admin.sortable-column>
             <flux:table.column>{{ __('Role') }}</flux:table.column>
-            <flux:table.column>{{ __('Joined') }}</flux:table.column>
+            <x-admin.sortable-column column="created_at" :direction="$this->sortDirection('created_at')">{{ __('Joined') }}</x-admin.sortable-column>
             <flux:table.column></flux:table.column>
         </flux:table.columns>
 

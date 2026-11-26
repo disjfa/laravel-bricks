@@ -29,6 +29,7 @@ dataset('admin routes', [
     'form submissions' => fn () => route('admin.forms.submissions', Form::factory()->create()),
     'menus' => fn () => route('admin.menus.index'),
     'settings' => fn () => route('admin.settings'),
+    'api tokens' => fn () => route('admin.api-tokens'),
     'menu builder' => fn () => route('admin.menus.edit', Menu::factory()->create()),
 ]);
 

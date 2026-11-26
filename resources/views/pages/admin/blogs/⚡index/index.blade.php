@@ -1,76 +1,3 @@
-<?php
-
-use App\Models\Blog;
-use Flux\Flux;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Livewire\Attributes\Computed;
-use Livewire\Attributes\Layout;
-use Livewire\Attributes\Title;
-use Livewire\Attributes\Url;
-use Livewire\Component;
-use Livewire\WithPagination;
-
-new #[Layout('layouts::admin'), Title('Blogs')] class extends Component {
-    use WithPagination;
-
-    #[Url(except: '')]
-    public string $search = '';
-
-    public string $title = '';
-
-    public function updatedSearch(): void
-    {
-        $this->resetPage();
-    }
-
-    public function createBlog(): void
-    {
-        $this->authorize('create', Blog::class);
-
-        $validated = $this->validate([
-            'title' => ['required', 'string', 'max:255'],
-        ]);
-
-        $blog = Blog::query()->create($validated);
-
-        $this->redirectRoute('admin.blogs.edit', ['blog' => $blog], navigate: true);
-    }
-
-    public function deleteBlog(int $blogId): void
-    {
-        $blog = Blog::query()->findOrFail($blogId);
-
-        $this->authorize('delete', $blog);
-
-        $blog->delete();
-
-        Flux::modal("delete-blog-{$blogId}")->close();
-
-        Flux::toast(variant: 'success', text: __('Blog deleted.'));
-    }
-
-    /**
-     * @return LengthAwarePaginator<int, Blog>
-     */
-    #[Computed]
-    public function blogs(): LengthAwarePaginator
-    {
-        $this->authorize('viewAny', Blog::class);
-
-        return Blog::query()
-            ->when($this->search, function ($query, string $search) {
-                $query->where(function ($query) use ($search) {
-                    $query
-                        ->where('title', 'like', "%{$search}%")
-                        ->orWhere('slug', 'like', "%{$search}%");
-                });
-            })
-            ->latest('published_at')
-            ->latest('id')
-            ->paginate(15);
-    }
-}; ?>
-
 <div class="space-y-6">
     <div class="flex flex-wrap items-center justify-between gap-4">
         <div>
@@ -91,10 +18,10 @@ new #[Layout('layouts::admin'), Title('Blogs')] class extends Component {
 
     <flux:table :paginate="$this->blogs">
         <flux:table.columns>
-            <flux:table.column>{{ __('Title') }}</flux:table.column>
+            <x-admin.sortable-column column="title" :direction="$this->sortDirection('title')">{{ __('Title') }}</x-admin.sortable-column>
             <flux:table.column>{{ __('Status') }}</flux:table.column>
-            <flux:table.column>{{ __('Publish date') }}</flux:table.column>
-            <flux:table.column>{{ __('Seq.') }}</flux:table.column>
+            <x-admin.sortable-column column="published_at" :direction="$this->sortDirection('published_at')">{{ __('Publish date') }}</x-admin.sortable-column>
+            <x-admin.sortable-column column="seqnr" :direction="$this->sortDirection('seqnr')">{{ __('Seq.') }}</x-admin.sortable-column>
             <flux:table.column></flux:table.column>
         </flux:table.columns>
 
