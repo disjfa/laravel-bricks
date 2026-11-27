@@ -60,6 +60,34 @@ Each form emails its submissions to the addresses on its Settings tab, or to the
 emails locally, run [Mailpit](https://mailpit.axllent.org) and set `MAIL_MAILER=smtp` and `MAIL_PORT=1025`; the
 mails show up at http://localhost:8025.
 
+## Deploying
+
+Bricks deploys with [Deployer](https://deployer.org), with zero downtime: every deploy is a new release folder that
+goes live with a symlink switch. The server needs PHP, Composer and git, and SSH access with your key. It clones the repository itself: set
+`DEPLOY_REPOSITORY` to the https URL of a public repository, or give the server a read-only deploy key for a private one. The assets are
+built on your machine and uploaded, so the server does not need Node.
+
+1. Set the server in your `.env`:
+
+   ```ini
+   DEPLOY_HOST=example.com
+   DEPLOY_USER=deploy
+   DEPLOY_PATH=/var/www/bricks
+   ```
+
+   `DEPLOY_BRANCH` defaults to `main` and `DEPLOY_REPOSITORY` to your git remote. Use `DEPLOY_PHP` when the server
+   needs a specific PHP binary, like `/usr/bin/php8.5`.
+
+2. Deploy with `vendor/bin/dep deploy`.
+
+3. The first deploy creates `shared/.env` on the server from `.env.example`. Edit it right away for production
+   (`APP_ENV=production`, `APP_DEBUG=false`, `APP_URL`, the database and mail), generate a key with
+   `vendor/bin/dep artisan:key:generate`, and deploy again. Point the web server at `current/public`.
+
+Every deploy installs the Composer packages, uploads the assets, links the storage, caches the config, routes and
+views, runs the migrations, switches to the new release and reloads the queue workers. `.env`, `storage` and an
+SQLite database are kept between releases. Roll back with `vendor/bin/dep rollback`.
+
 ## Working on Bricks
 
 ```shell

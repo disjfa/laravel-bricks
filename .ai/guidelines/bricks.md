@@ -15,6 +15,8 @@ so keep it free of machine-specific setup and hardcoded infrastructure.
   `SiteFeature::All` and switched on the settings page.
 - Site settings are `spatie/laravel-settings` classes in `app/Settings`, with their defaults in `database/settings`.
 - The filters and sorts shared by the API and the admin lists are in `app/Queries`.
+- Deploys go with Deployer (`deploy.php`, Laravel recipe). The server comes from the `DEPLOY_*` settings in `.env`, so
+  never hardcode a host or path in `deploy.php`.
 
 ## Architecture choices
 
