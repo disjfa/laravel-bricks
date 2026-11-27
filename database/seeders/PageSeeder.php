@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Enums\PublishStatus;
+use App\Models\Form;
 use App\Models\Page;
 use Illuminate\Database\Seeder;
 
@@ -27,6 +29,16 @@ class PageSeeder extends Seeder
             ['divider', []],
             ['button', ['label' => 'Back home', 'url' => '/', 'variant' => 'outline']],
         ]);
+
+        $this->createPage('Blog', 'blog', [
+            ['heading', ['text' => 'Blog', 'level' => 2]],
+            ['blogs', ['title' => '', 'per_page' => 6, 'sort' => 'newest']],
+        ]);
+
+        $this->createPage('Contact', 'contact', [
+            ['heading', ['text' => 'Get in touch', 'level' => 2]],
+            ['form', ['form_id' => Form::query()->where('name', 'Contact')->value('id')]],
+        ]);
     }
 
     /**
@@ -36,7 +48,7 @@ class PageSeeder extends Seeder
     {
         $page = Page::query()->firstOrCreate(
             ['slug' => $slug],
-            ['title' => $title, 'published_at' => now()],
+            ['title' => $title, 'status' => PublishStatus::Active, 'published_at' => now()],
         );
 
         if ($page->bricks()->exists()) {

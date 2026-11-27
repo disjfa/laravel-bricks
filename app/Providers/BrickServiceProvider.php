@@ -3,32 +3,22 @@
 namespace App\Providers;
 
 use App\Bricks\BrickType;
-use Illuminate\Support\Facades\File;
+use App\FormFields\FormFieldType;
+use App\MenuLinks\MenuLinkType;
+use App\Registry\TypeRegistry;
 use Illuminate\Support\ServiceProvider;
-use ReflectionClass;
-use Symfony\Component\Finder\SplFileInfo;
 
 /**
- * Laravel's counterpart of Symfony's autoconfigure: tag every class in app/Bricks that implements BrickType.
- * BrickRegistry receives them through #[Tag(BrickType::class)].
+ * Laravel's counterpart of Symfony's autoconfigure: tag every class in app/Bricks that implements BrickType,
+ * in app/FormFields that implements FormFieldType and in app/MenuLinks that implements MenuLinkType.
+ * BrickRegistry, FormFieldRegistry and MenuLinkRegistry receive them through #[Tag].
  */
 class BrickServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->tag($this->discoverBrickTypes(), BrickType::class);
-    }
-
-    /**
-     * @return array<int, class-string<BrickType>>
-     */
-    protected function discoverBrickTypes(): array
-    {
-        return collect(File::files(app_path('Bricks')))
-            ->map(fn (SplFileInfo $file) => 'App\\Bricks\\'.$file->getFilenameWithoutExtension())
-            ->filter(fn (string $class) => is_subclass_of($class, BrickType::class)
-                && (new ReflectionClass($class))->isInstantiable())
-            ->values()
-            ->all();
+        $this->app->tag(TypeRegistry::discover('Bricks', BrickType::class), BrickType::class);
+        $this->app->tag(TypeRegistry::discover('FormFields', FormFieldType::class), FormFieldType::class);
+        $this->app->tag(TypeRegistry::discover('MenuLinks', MenuLinkType::class), MenuLinkType::class);
     }
 }

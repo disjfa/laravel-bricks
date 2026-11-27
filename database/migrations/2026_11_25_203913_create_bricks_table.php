@@ -10,13 +10,18 @@ return new class extends Migration
     {
         Schema::create('bricks', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('page_id')->constrained()->cascadeOnDelete();
+
+            // The page or blog the brick is part of, see App\Bricks\Brickable
+            $table->string('brickable_type');
+            $table->unsignedBigInteger('brickable_id');
+
             $table->string('type');
             $table->json('data');
+            $table->json('settings')->nullable();
             $table->unsignedInteger('position')->default(0);
             $table->timestamps();
 
-            $table->index(['page_id', 'position']);
+            $table->index(['brickable_type', 'brickable_id', 'position']);
         });
     }
 };

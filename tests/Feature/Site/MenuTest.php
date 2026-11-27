@@ -1,0 +1,96 @@
+<?php
+
+use App\Models\Blog;
+use App\Models\Menu;
+use App\Models\MenuItem;
+use App\Models\Page;
+use App\Models\User;
+use Database\Seeders\RolesSeeder;
+
+beforeEach(function () {
+    $this->menu = Menu::factory()->main()->create();
+    Page::factory()->published()->create(['slug' => 'home']);
+});
+
+it('shows the items of the main menu in the header', function () {
+    $about = Page::factory()->published()->create(['slug' => 'about']);
+    $blog = Blog::factory()->published()->create(['slug' => 'news']);
+    MenuItem::factory()->for($this->menu)->forPage($about)->create(['label' => 'About us', 'position' => 0]);
+    MenuItem::factory()->for($this->menu)->forBlog($blog)->create(['label' => 'Latest news', 'position' => 1]);
+    MenuItem::factory()->for($this->menu)->url('https://example.com/docs')->create(['label' => 'Docs', 'position' => 2]);
+
+    $this->get(route('home'))
+        ->assertOk()
+        ->assertSeeInOrder(['About us', 'Latest news', 'Docs'])
+        ->assertSee(url('/about'), false)
+        ->assertSee(url('/blog/news'), false)
+        ->assertSee('https://example.com/docs', false);
+});
+
+it('repeats the items in a sidebar for mobile', function () {
+    MenuItem::factory()->for($this->menu)->url('/docs')->create(['label' => 'Docs']);
+
+    $this->get(route('home'))
+        ->assertOk()
+        ->assertSee('data-test="site-menu-button"', false)
+        ->assertSeeInOrder(['data-test="site-menu-sidebar"', 'Docs'], false);
+});
+
+it('hides items that link to something that is not published', function () {
+    MenuItem::factory()->for($this->menu)->forPage(Page::factory()->create())->create(['label' => 'Secret page']);
+    MenuItem::factory()->for($this->menu)->forBlog(Blog::factory()->closed()->create())->create(['label' => 'Closed blog']);
+
+    $this->get(route('home'))
+        ->assertOk()
+        ->assertDontSee('Secret page')
+        ->assertDontSee('Closed blog');
+});
+
+it('shows the footer menu', function () {
+    $footer = Menu::factory()->create(['handle' => Menu::FooterHandle]);
+    MenuItem::factory()->for($footer)->url('/privacy')->create(['label' => 'Privacy']);
+
+    $this->get(route('home'))->assertSee('Privacy');
+});
+
+it('has no login, register or account links', function () {
+    $this->seed(RolesSeeder::class);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('home'))
+        ->assertOk()
+        ->assertDontSee(route('login'), false)
+        ->assertDontSee(route('register'), false)
+        ->assertDontSee(route('profile.edit'), false)
+        ->assertDontSee(route('admin.dashboard'), false);
+});
+
+it('links to the admin for admins', function () {
+    $this->seed(RolesSeeder::class);
+
+    $this->actingAs(User::factory()->admin()->create())
+        ->get(route('home'))
+        ->assertSee(route('admin.dashboard'), false);
+});
+
+it('opens custom links in a new tab when that is set', function () {
+    MenuItem::factory()->for($this->menu)->url('https://example.com/docs', newTab: true)->create(['label' => 'Docs']);
+    MenuItem::factory()->for($this->menu)->url('/about')->create(['label' => 'About', 'position' => 1]);
+
+    $html = $this->get(route('home'))->getContent();
+
+    // The header menu and the mobile menu.
+    preg_match_all('/<a href="https:\/\/example\.com\/docs"[^>]*>/', $html, $docsLinks);
+    preg_match_all('/<a href="\/about"[^>]*>/', $html, $aboutLinks);
+
+    expect($docsLinks[0])->toHaveCount(2)
+        ->each->toContain('target="_blank" rel="noopener"')
+        ->and($aboutLinks[0])->toHaveCount(2)
+        ->each->not->toContain('target="_blank"');
+});
+
+it('hides items of a link type that no longer exists', function () {
+    MenuItem::factory()->for($this->menu)->create(['label' => 'Legacy', 'type' => 'removed-type', 'data' => []]);
+
+    $this->get(route('home'))->assertOk()->assertDontSee('Legacy');
+});

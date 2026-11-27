@@ -2,8 +2,8 @@
 
 namespace App\Bricks;
 
-use App\Bricks\Fields\Image;
-use App\Bricks\Fields\Text;
+use App\Fields\Image;
+use App\Fields\Text;
 
 class ImageBrick extends BaseBrick
 {

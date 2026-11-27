@@ -2,12 +2,15 @@
 
 namespace App\Bricks;
 
-use App\Bricks\Fields\Field;
-use Illuminate\Support\Facades\Validator as ValidatorFacade;
+use App\Enums\BrickWidth;
+use App\Fields\Field;
+use App\Fields\FieldSet;
+use App\Fields\Select;
 use Illuminate\Validation\Validator;
 
 /**
- * Derives the defaults, validation and view of a brick from its fields.
+ * Derives the defaults, validation and view of a brick from its fields, and gives every brick
+ * the same settings (like its width). Override extraSettings() to give a brick settings of its own.
  */
 abstract class BaseBrick implements BrickType
 {
@@ -16,39 +19,60 @@ abstract class BaseBrick implements BrickType
         return 100;
     }
 
+    public function isAvailable(): bool
+    {
+        return true;
+    }
+
     public function defaults(): array
     {
-        return collect($this->fields())
-            ->mapWithKeys(fn (Field $field) => [$field->name => $field->getDefault()])
-            ->all();
+        return FieldSet::of($this->fields())->defaults();
     }
 
     public function rules(): array
     {
-        return collect($this->fields())
-            ->mapWithKeys(fn (Field $field) => [$field->name => $field->getRules()])
-            ->all();
+        return FieldSet::of($this->fields())->rules();
     }
 
     public function validator(array $data): Validator
     {
-        return ValidatorFacade::make($data, $this->rules(), attributes: $this->validationAttributes());
+        return FieldSet::of($this->fields())->validator($data);
+    }
+
+    /**
+     * The settings every brick has, like its width. A brick adds its own with extraSettings().
+     */
+    public function settings(): array
+    {
+        return [
+            Select::make('width')
+                ->label(__('Width'))
+                ->required()
+                ->options(collect(BrickWidth::cases())->mapWithKeys(fn (BrickWidth $width) => [$width->value => $width->label()])->all()),
+            ...$this->extraSettings(),
+        ];
+    }
+
+    /**
+     * @return array<int, Field>
+     */
+    protected function extraSettings(): array
+    {
+        return [];
+    }
+
+    public function settingsDefaults(): array
+    {
+        return FieldSet::of($this->settings())->defaults();
+    }
+
+    public function settingsValidator(array $settings): Validator
+    {
+        return FieldSet::of($this->settings())->validator($settings);
     }
 
     public function view(): string
     {
         return "bricks.web.{$this->key()}";
-    }
-
-    /**
-     * Use the field labels in validation messages.
-     *
-     * @return array<string, string>
-     */
-    protected function validationAttributes(): array
-    {
-        return collect($this->fields())
-            ->mapWithKeys(fn (Field $field) => [$field->name => mb_strtolower($field->getLabel())])
-            ->all();
     }
 }

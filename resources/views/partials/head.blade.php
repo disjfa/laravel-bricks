@@ -1,15 +1,20 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<title>
-    {{ filled($title ?? null) ? $title.' - '.config('app.name', 'Laravel') : config('app.name', 'Laravel') }}
-</title>
+@if (isset($seoTags))
+    {{-- The website: title, description and social tags, prepared by App\View\Components\SiteLayout. --}}
+    {{ $seoTags }}
+@else
+    <title>
+        {{ filled($title ?? null) ? $title.' - '.app(App\Settings\SeoSettings::class)->title() : app(App\Settings\SeoSettings::class)->title() }}
+    </title>
+@endif
 
-<link rel="icon" href="/favicon.ico" sizes="any">
-<link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+@include('partials.app-icons')
 
-@fonts
+@if (isset($seoTags))
+    @include('partials.pwa')
+@endif
 
 @vite(['resources/css/app.css', 'resources/js/app.js'])
 @fluxAppearance

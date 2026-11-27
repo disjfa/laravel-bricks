@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\LaravelSettings\Settings;
 use Tests\TestCase;
 
 /*
@@ -44,7 +45,19 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * Change settings of a spatie/laravel-settings class and store them, like the admin settings page does.
+ *
+ * @param  class-string<Settings>  $settingsClass
+ * @param  array<string, mixed>  $values
+ */
+function updateSettings(string $settingsClass, array $values): void
 {
-    // ..
+    $settings = app($settingsClass);
+
+    foreach ($values as $name => $value) {
+        $settings->{$name} = $value;
+    }
+
+    $settings->save();
 }

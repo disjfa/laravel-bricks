@@ -2,9 +2,11 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
     <head>
         @include('partials.head')
+        {{-- The admin uses the colors and fonts of the website, see the settings page. --}}
+        @include('partials.site-theme')
     </head>
-    <body class="min-h-screen bg-white dark:bg-zinc-800">
-        <flux:sidebar sticky collapsible="mobile" class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
+    <body class="min-h-screen" data-site-theme>
+        <flux:sidebar sticky collapsible="mobile" class="border-e border-zinc-200 dark:border-zinc-700" data-site-menubar>
             <flux:sidebar.header>
                 <x-app-logo :sidebar="true" href="{{ route('admin.dashboard') }}" wire:navigate />
                 <flux:sidebar.collapse class="lg:hidden" />
@@ -24,19 +26,19 @@
                 </flux:sidebar.item>
             </flux:sidebar.nav>
 
-            <x-desktop-user-menu class="hidden lg:block" :showTeam="false" />
+            <x-desktop-user-menu class="hidden lg:block" />
         </flux:sidebar>
 
-        <flux:header class="lg:hidden">
+        <flux:header class="border-b border-zinc-200 lg:hidden dark:border-zinc-700" data-site-menubar>
             <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
 
             <flux:spacer />
 
-            <x-desktop-user-menu :showTeam="false" />
+            <x-desktop-user-menu />
         </flux:header>
 
-        {{-- Pages that mark themselves data-full-bleed (the brick editor) manage their own spacing. --}}
-        <flux:main class="has-[[data-full-bleed]]:p-0!">
+        {{-- 16px padding at every size. Screens that mark themselves data-full-bleed (<x-admin.screen>) manage their own spacing. --}}
+        <flux:main class="p-4! has-[[data-full-bleed]]:p-0!">
             {{ $slot }}
         </flux:main>
 

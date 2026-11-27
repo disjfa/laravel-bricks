@@ -2,9 +2,9 @@
 
 namespace App\Bricks;
 
-use App\Bricks\Fields\Link;
-use App\Bricks\Fields\Select;
-use App\Bricks\Fields\Text;
+use App\Fields\Link;
+use App\Fields\Select;
+use App\Fields\Text;
 
 class ButtonBrick extends BaseBrick
 {

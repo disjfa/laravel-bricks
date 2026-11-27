@@ -13,6 +13,8 @@ class MenuLink extends Link
 
     protected bool $matchExactly = false;
 
+    protected bool $opensInNewTab = false;
+
     public function icon(string $icon): static
     {
         $this->icon = $icon;
@@ -40,5 +42,17 @@ class MenuLink extends Link
         return $this->matchExactly
             ? $this->isExactActive()
             : $this->isActive();
+    }
+
+    public function newTab(bool $opensInNewTab = true): static
+    {
+        $this->opensInNewTab = $opensInNewTab;
+
+        return $this;
+    }
+
+    public function opensInNewTab(): bool
+    {
+        return $this->opensInNewTab;
     }
 }

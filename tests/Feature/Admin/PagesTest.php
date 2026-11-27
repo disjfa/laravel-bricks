@@ -1,12 +1,15 @@
 <?php
 
+use App\Enums\PublishStatus;
 use App\Models\Brick;
 use App\Models\Page;
 use App\Models\User;
 use Database\Seeders\RolesSeeder;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
+use Spatie\MediaLibrary\Conversions\Jobs\PerformConversionsJob;
 
 beforeEach(function () {
     $this->seed(RolesSeeder::class);
@@ -34,7 +37,7 @@ describe('index', function () {
 
     it('deletes a page with its bricks', function () {
         $brick = Brick::factory()->create();
-        $page = $brick->page;
+        $page = $brick->brickable;
 
         Livewire::test('pages::admin.pages.index')
             ->call('deletePage', $page->id);
@@ -65,9 +68,9 @@ describe('editor', function () {
 
     it('reorders and removes existing bricks', function () {
         $page = Page::factory()->create();
-        $first = Brick::factory()->for($page)->heading('First')->create(['position' => 0]);
-        $second = Brick::factory()->for($page)->heading('Second')->create(['position' => 1]);
-        $third = Brick::factory()->for($page)->heading('Third')->create(['position' => 2]);
+        $first = Brick::factory()->for($page, 'brickable')->heading('First')->create(['position' => 0]);
+        $second = Brick::factory()->for($page, 'brickable')->heading('Second')->create(['position' => 1]);
+        $third = Brick::factory()->for($page, 'brickable')->heading('Third')->create(['position' => 2]);
 
         $component = Livewire::test('pages::admin.pages.edit', ['page' => $page]);
         $keys = array_column($component->get('bricks'), 'key');
@@ -93,6 +96,37 @@ describe('editor', function () {
         expect($page->bricks()->count())->toBe(0);
     });
 
+    it('saves the brick settings, starting at the normal width', function () {
+        $page = Page::factory()->create();
+
+        Livewire::test('pages::admin.pages.edit', ['page' => $page])
+            ->call('addBrick', 'heading')
+            ->assertSet('bricks.0.settings', ['width' => 'normal'])
+            ->assertSeeHtml('data-test="brick-settings-button"')
+            ->set('bricks.0.data.text', 'Welcome')
+            ->set('bricks.0.settings.width', 'full')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        expect($page->bricks()->sole()->settings)->toBe(['width' => 'full']);
+    });
+
+    it('rejects an unknown width', function () {
+        Livewire::test('pages::admin.pages.edit', ['page' => Page::factory()->create()])
+            ->call('addBrick', 'divider')
+            ->set('bricks.0.settings.width', 'huge')
+            ->call('save')
+            ->assertHasErrors(['bricks.0.settings.width']);
+    });
+
+    it('gives existing bricks without settings the default settings', function () {
+        $page = Page::factory()->create();
+        Brick::factory()->for($page, 'brickable')->create(['settings' => null]);
+
+        Livewire::test('pages::admin.pages.edit', ['page' => $page])
+            ->assertSet('bricks.0.settings', ['width' => 'normal']);
+    });
+
     it('rejects javascript links in bricks', function () {
         $page = Page::factory()->create();
 
@@ -108,7 +142,7 @@ describe('editor', function () {
 describe('live preview', function () {
     it('edits text bricks with the markdown editor', function () {
         $page = Page::factory()->create();
-        Brick::factory()->for($page)->create(['data' => ['body' => 'Some **bold** text']]);
+        Brick::factory()->for($page, 'brickable')->create(['data' => ['body' => 'Some **bold** text']]);
 
         Livewire::test('pages::admin.pages.edit', ['page' => $page])
             ->assertSeeHtml('x-data="markdownEditor"')
@@ -120,7 +154,7 @@ describe('live preview', function () {
         Storage::fake('public');
         $page = Page::factory()->create();
         $page->addMedia(UploadedFile::fake()->image('inline-photo.jpg'))->toMediaCollection(Page::MediaCollection);
-        Brick::factory()->for($page)->create();
+        Brick::factory()->for($page, 'brickable')->create();
 
         Livewire::test('pages::admin.pages.edit', ['page' => $page])
             ->assertSeeHtml('data-test="markdown-image-picker"')
@@ -151,6 +185,14 @@ describe('live preview', function () {
             ->assertSeeHtml('<strong>live</strong>');
     });
 
+    it('renders bricks in the preview at their width', function () {
+        Livewire::test('brick-preview')
+            ->dispatch('bricks-updated', bricks: [
+                ['key' => 'a', 'type' => 'divider', 'data' => [], 'settings' => ['width' => 'wide']],
+            ])
+            ->assertSeeHtml('data-brick-width="wide"');
+    });
+
     it('renders an incomplete or unsafe brick as a placeholder', function () {
         Livewire::test('brick-preview')
             ->dispatch('bricks-updated', bricks: [
@@ -169,7 +211,7 @@ describe('settings', function () {
             ->set('title', 'New title')
             ->set('slug', 'new-slug')
             ->set('metaDescription', 'About this page')
-            ->set('published', true)
+            ->set('publishing.status', PublishStatus::Active->value)
             ->call('save')
             ->assertHasNoErrors();
 
@@ -178,6 +220,14 @@ describe('settings', function () {
             ->slug->toBe('new-slug')
             ->meta_description->toBe('About this page')
             ->isPublished()->toBeTrue();
+    });
+
+    it('links the public url in the header', function () {
+        $page = Page::factory()->create(['slug' => 'about']);
+
+        Livewire::test('pages::admin.pages.settings', ['page' => $page])
+            ->assertSeeHtml('href="'.url('/about').'" target="_blank"')
+            ->assertDontSee('The page is available at');
     });
 
     it('rejects a slug that is already taken', function () {
@@ -199,14 +249,55 @@ describe('settings', function () {
             ->assertHasErrors(['slug' => 'The slug may only contain lowercase letters, numbers and dashes.']);
     });
 
-    it('unpublishes a page', function () {
+    it('closes a page', function () {
         $page = Page::factory()->published()->create();
 
         Livewire::test('pages::admin.pages.settings', ['page' => $page])
-            ->set('published', false)
-            ->call('save');
+            ->set('publishing.status', PublishStatus::Closed->value)
+            ->call('save')
+            ->assertHasNoErrors();
 
-        expect($page->refresh()->published_at)->toBeNull();
+        expect($page->refresh())
+            ->status->toBe(PublishStatus::Closed)
+            ->isPublished()->toBeFalse();
+    });
+
+    it('saves the publish window and sequence number', function () {
+        $page = Page::factory()->create();
+
+        Livewire::test('pages::admin.pages.settings', ['page' => $page])
+            ->set('publishing.status', PublishStatus::Active->value)
+            ->set('publishing.publishedAt', '2030-01-01T09:00')
+            ->set('publishing.publishedUntil', '2030-02-01T09:00')
+            ->set('publishing.seqnr', 7)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        expect($page->refresh())
+            ->published_at->format('Y-m-d H:i')->toBe('2030-01-01 09:00')
+            ->published_until->format('Y-m-d H:i')->toBe('2030-02-01 09:00')
+            ->seqnr->toBe(7)
+            ->isScheduled()->toBeTrue();
+    });
+
+    it('fills and saves the dates in the format of the date picker', function () {
+        $page = Page::factory()->create(['published_at' => '2030-01-01 09:00:00']);
+
+        Livewire::test('pages::admin.pages.settings', ['page' => $page])
+            ->assertSet('publishing.publishedAt', '2030-01-01 09:00')
+            ->set('publishing.publishedUntil', '2030-03-15 17:30')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        expect($page->refresh()->published_until->format('Y-m-d H:i'))->toBe('2030-03-15 17:30');
+    });
+
+    it('rejects a publish until date before the publish date', function () {
+        Livewire::test('pages::admin.pages.settings', ['page' => Page::factory()->create()])
+            ->set('publishing.publishedAt', '2030-02-01T09:00')
+            ->set('publishing.publishedUntil', '2030-01-01T09:00')
+            ->call('save')
+            ->assertHasErrors(['publishing.publishedUntil']);
     });
 });
 
@@ -233,6 +324,23 @@ describe('media', function () {
         expect($media)->toHaveCount(2)
             ->and($media->firstWhere('name', 'hero')->hasGeneratedConversion('thumb'))->toBeTrue();
         Storage::disk('public')->assertExists($media->firstWhere('name', 'hero')->getPathRelativeToRoot());
+    });
+
+    it('queues the thumbnail when a real queue is set up and shows the original until it is made', function () {
+        Queue::fake();
+        $page = Page::factory()->create();
+
+        Livewire::test('pages::admin.pages.media', ['page' => $page])
+            ->set('uploads', [UploadedFile::fake()->image('hero.jpg', 1600, 900)])
+            ->assertHasNoErrors();
+
+        $media = $page->getFirstMedia(Page::MediaCollection);
+
+        Queue::assertPushed(PerformConversionsJob::class);
+        expect($media->hasGeneratedConversion('thumb'))->toBeFalse();
+
+        Livewire::test('pages::admin.pages.media', ['page' => $page])
+            ->assertSeeHtml('src="'.$media->getUrl().'"');
     });
 
     it('rejects file types that could run scripts', function (string $fileName) {

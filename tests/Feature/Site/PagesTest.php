@@ -3,12 +3,13 @@
 use App\Models\Brick;
 use App\Models\Page;
 use App\Models\User;
+use App\Settings\ThemeSettings;
 use Database\Seeders\RolesSeeder;
 
 it('renders a published page and its bricks by slug', function () {
     $page = Page::factory()->published()->create(['slug' => 'about', 'title' => 'About us']);
-    Brick::factory()->for($page)->heading('Our story')->create(['position' => 0]);
-    Brick::factory()->for($page)->create([
+    Brick::factory()->for($page, 'brickable')->heading('Our story')->create(['position' => 0]);
+    Brick::factory()->for($page, 'brickable')->create([
         'type' => 'text',
         'data' => ['body' => 'We **build** things.'],
         'position' => 1,
@@ -38,12 +39,12 @@ it('shows a draft page to admins', function () {
     $this->actingAs(User::factory()->admin()->create())
         ->get('/secret')
         ->assertOk()
-        ->assertSee(__('This page is a draft and only visible to editors.'));
+        ->assertSee('This page is not published (concept) and only visible to editors.');
 });
 
 it('escapes html in text bricks', function () {
     $page = Page::factory()->published()->create(['slug' => 'xss']);
-    Brick::factory()->for($page)->create(['data' => ['body' => '<script>alert(1)</script>']]);
+    Brick::factory()->for($page, 'brickable')->create(['data' => ['body' => '<script>alert(1)</script>']]);
 
     $this->get('/xss')
         ->assertOk()
@@ -52,7 +53,7 @@ it('escapes html in text bricks', function () {
 
 it('renders the page with the home slug on the front page', function () {
     $page = Page::factory()->published()->create(['slug' => 'home']);
-    Brick::factory()->for($page)->heading('Welcome home')->create();
+    Brick::factory()->for($page, 'brickable')->heading('Welcome home')->create();
 
     $this->get(route('home'))
         ->assertOk()
@@ -67,7 +68,7 @@ it('falls back to the welcome screen without a home page', function () {
 
 it('renders the hero background image', function () {
     $page = Page::factory()->published()->create(['slug' => 'with-hero']);
-    Brick::factory()->for($page)->create([
+    Brick::factory()->for($page, 'brickable')->create([
         'type' => 'hero',
         'data' => ['title' => 'Big hero', 'image_url' => 'https://example.com/hero.jpg'],
     ]);
@@ -80,9 +81,54 @@ it('renders the hero background image', function () {
 
 it('renders media images inside text bricks', function () {
     $page = Page::factory()->published()->create(['slug' => 'with-image']);
-    Brick::factory()->for($page)->create(['data' => ['body' => "Look:\n\n![Sunset](</storage/1/sunset photo.jpg>)"]]);
+    Brick::factory()->for($page, 'brickable')->create(['data' => ['body' => "Look:\n\n![Sunset](</storage/1/sunset photo.jpg>)"]]);
 
     $this->get('/with-image')
         ->assertOk()
         ->assertSee('<img src="/storage/1/sunset%20photo.jpg" alt="Sunset" />', false);
+});
+
+it('renders bricks in the container for their width', function (?array $settings, string $width, string $containerClass) {
+    $page = Page::factory()->published()->create(['slug' => 'widths']);
+    Brick::factory()->for($page, 'brickable')->heading('Sized')->create(['settings' => $settings]);
+
+    $this->get('/widths')
+        ->assertOk()
+        ->assertSee('class="'.$containerClass.'" data-brick-width="'.$width.'"', false);
+})->with([
+    'without settings' => [null, 'normal', 'mx-auto w-full max-w-3xl px-6'],
+    'wide' => [['width' => 'wide'], 'wide', 'mx-auto w-full max-w-6xl px-6'],
+    'full' => [['width' => 'full'], 'full', 'w-full px-6'],
+]);
+
+it('uses the theme colors from the settings', function () {
+    updateSettings(ThemeSettings::class, ['light' => ['accent' => '#1d4ed8', 'menubar_background' => '#fefce8']]);
+    Page::factory()->published()->create(['slug' => 'home']);
+
+    $this->get(route('home'))
+        ->assertOk()
+        ->assertSee('--color-accent: #1d4ed8;', false)
+        ->assertSee('--site-menubar-background: #fefce8;', false)
+        ->assertSee('--site-background: #ffffff;', false);
+});
+
+it('links editors from the footer to the brick editor of the page', function () {
+    $this->seed(RolesSeeder::class);
+    $page = Page::factory()->published()->create(['slug' => 'about']);
+
+    $this->actingAs(User::factory()->admin()->create())
+        ->get('/about')
+        ->assertSee('href="'.route('admin.pages.edit', $page).'"', false)
+        ->assertSee('Edit page');
+});
+
+it('shows no edit link to visitors who can not edit the page', function () {
+    $this->seed(RolesSeeder::class);
+    Page::factory()->published()->create(['slug' => 'about']);
+
+    $this->get('/about')->assertDontSee('data-test="edit-content-link"', false);
+
+    $this->actingAs(User::factory()->create())
+        ->get('/about')
+        ->assertDontSee('data-test="edit-content-link"', false);
 });

@@ -2,10 +2,10 @@
 
 namespace App\Bricks;
 
-use App\Bricks\Fields\Image;
-use App\Bricks\Fields\Link;
-use App\Bricks\Fields\Text;
-use App\Bricks\Fields\Textarea;
+use App\Fields\Image;
+use App\Fields\Link;
+use App\Fields\Text;
+use App\Fields\Textarea;
 
 class HeroBrick extends BaseBrick
 {

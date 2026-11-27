@@ -35,4 +35,13 @@ return [
         ],
     ],
 
+    /*
+     * Cloudflare Turnstile protects the form brick against spam. Without keys the form uses a honeypot instead.
+     * Get the keys at https://dash.cloudflare.com/?to=/:account/turnstile.
+     */
+    'turnstile' => [
+        'site_key' => env('TURNSTILE_SITE_KEY'),
+        'secret_key' => env('TURNSTILE_SECRET_KEY'),
+    ],
+
 ];
