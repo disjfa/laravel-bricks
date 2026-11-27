@@ -1,5 +1,6 @@
 @props([
     'title',
+    'icon' => null,
     'back' => null,
     'subtitle' => null,
     'subtitleUrl' => null,
@@ -15,6 +16,7 @@
     Every admin screen that edits one thing (a page, blog, form, menu or the site settings) uses this layout,
     so the header, its line and the padding are the same everywhere.
 
+    - icon: the icon of the screen's item in the admin menu, shown before the title.
     - tabs: array<int, array{label: string, icon: string, url: string, current: bool}>
     - save: the Livewire action of the Save button (accesskey S), or null for no Save button.
     - columns: two columns that scroll on their own, like the editor with its live preview. Fill them with
@@ -32,7 +34,7 @@
 
                 <div class="min-w-0">
                     <div class="flex items-center gap-2">
-                        <flux:heading size="xl" level="1" class="truncate">{{ $title }}</flux:heading>
+                        <x-admin.heading :icon="$icon">{{ $title }}</x-admin.heading>
                         {{ $badge ?? '' }}
                     </div>
 

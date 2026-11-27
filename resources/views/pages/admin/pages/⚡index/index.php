@@ -46,7 +46,7 @@ new #[Layout('layouts::admin'), Title('Pages')] class extends Component
 
         $this->authorize('delete', $page);
 
-        $page->delete();
+        $page->deleteWithRevision();
 
         Flux::modal("delete-page-{$pageId}")->close();
 

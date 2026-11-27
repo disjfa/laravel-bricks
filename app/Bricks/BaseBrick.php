@@ -3,6 +3,7 @@
 namespace App\Bricks;
 
 use App\Enums\BrickWidth;
+use App\Enums\TextAlign;
 use App\Fields\Field;
 use App\Fields\FieldSet;
 use App\Fields\Select;
@@ -48,6 +49,7 @@ abstract class BaseBrick implements BrickType
             Select::make('width')
                 ->label(__('Width'))
                 ->required()
+                ->segmented()
                 ->options(collect(BrickWidth::cases())->mapWithKeys(fn (BrickWidth $width) => [$width->value => $width->label()])->all()),
             ...$this->extraSettings(),
         ];
@@ -59,6 +61,18 @@ abstract class BaseBrick implements BrickType
     protected function extraSettings(): array
     {
         return [];
+    }
+
+    /**
+     * The alignment setting for bricks with text, read on the website with TextAlign::fromSettings().
+     */
+    protected function alignSetting(): Select
+    {
+        return Select::make('align')
+            ->label(__('Alignment'))
+            ->required()
+            ->segmented()
+            ->options(collect(TextAlign::cases())->mapWithKeys(fn (TextAlign $align) => [$align->value => $align->label()])->all());
     }
 
     public function settingsDefaults(): array

@@ -83,16 +83,18 @@ new #[Layout('layouts::admin')] class extends Component
             'tags.*' => __('tag'),
         ]);
 
-        $this->blog->update([
-            'title' => $this->title,
-            'slug' => $this->slug,
-            'excerpt' => $this->excerpt ?: null,
-            'image_url' => $this->imageUrl ?: null,
-            ...$this->validatedSeo(),
-            ...$this->publishing->toAttributes(),
-        ]);
+        $this->blog->recordingRevision(function (): void {
+            $this->blog->update([
+                'title' => $this->title,
+                'slug' => $this->slug,
+                'excerpt' => $this->excerpt ?: null,
+                'image_url' => $this->imageUrl ?: null,
+                ...$this->validatedSeo(),
+                ...$this->publishing->toAttributes(),
+            ]);
 
-        $this->saveTags();
+            $this->saveTags();
+        });
 
         Flux::toast(variant: 'success', text: __('Settings saved.'));
     }

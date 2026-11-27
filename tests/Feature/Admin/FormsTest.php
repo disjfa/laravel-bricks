@@ -148,6 +148,24 @@ it('updates the form settings', function () {
         ->successMessage()->toBe('Thanks!');
 });
 
+it('saves the addresses that get the submissions', function () {
+    $form = Form::factory()->create();
+
+    Livewire::test('pages::admin.forms.settings', ['form' => $form])
+        ->set('notificationEmail', 'info@example.com, sales@example.com')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($form->refresh()->notificationRecipients())->toBe(['info@example.com', 'sales@example.com']);
+});
+
+it('rejects an address that is not an email address', function () {
+    Livewire::test('pages::admin.forms.settings', ['form' => Form::factory()->create()])
+        ->set('notificationEmail', 'info@example.com, not-an-address')
+        ->call('save')
+        ->assertHasErrors(['notificationEmail' => 'Use email addresses separated by commas, like info@example.com, sales@example.com.']);
+});
+
 it('lists and deletes submissions', function () {
     $form = Form::factory()->contact()->create();
     $submission = FormSubmission::factory()->for($form)->create(['data' => ['name' => 'Jane Doe', 'email' => 'jane@example.com', 'message' => '']]);

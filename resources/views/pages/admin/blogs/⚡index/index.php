@@ -70,7 +70,7 @@ new #[Layout('layouts::admin'), Title('Blogs')] class extends Component
 
         $this->authorize('delete', $blog);
 
-        $blog->delete();
+        $blog->deleteWithRevision();
 
         Flux::modal("delete-blog-{$blogId}")->close();
 

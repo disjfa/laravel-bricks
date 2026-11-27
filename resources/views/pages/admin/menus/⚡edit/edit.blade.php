@@ -1,4 +1,4 @@
-<x-admin.screen :title="$menu->name" :subtitle="$menu->handle" :back="route('admin.menus.index')" save="save">
+<x-admin.screen :title="$menu->name" icon="bars-3" :subtitle="$menu->handle" :back="route('admin.menus.index')" save="save">
     <form wire:submit="save" class="grid items-start gap-6 lg:grid-cols-3">
         <div class="space-y-2 lg:col-span-2">
             <div wire:sort="sortItem" class="space-y-2">
@@ -9,7 +9,7 @@
                     <div wire:key="item-{{ $item['key'] }}-{{ $index }}" wire:sort:item="{{ $item['key'] }}" class="group/item">
                         <flux:card class="p-4! transition group-hover/item:ring-2 group-hover/item:ring-zinc-200 dark:group-hover/item:ring-zinc-600">
                             <div class="flex items-start gap-3">
-                                <div wire:sort:handle class="mt-1 cursor-grab text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200" title="{{ __('Drag to reorder') }}">
+                                <div wire:sort:handle class="mt-1 cursor-n-resize text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200" title="{{ __('Drag to reorder') }}">
                                     <flux:icon name="bars-2" variant="micro" />
                                 </div>
 
@@ -55,7 +55,8 @@
                 </div>
             @endif
 
-            <div class="flex justify-center pt-2">
+            {{-- Sticky at the bottom of the screen, so adding is always one click away. -bottom-4 reaches past the padding of the scrolling container. --}}
+            <div class="sticky -bottom-4 z-10 flex justify-center bg-linear-to-t from-(--site-background) from-60% to-transparent pt-8 pb-4">
                 <flux:dropdown position="bottom" align="center">
                     <flux:button icon="plus" data-test="add-menu-item">{{ __('Add item') }}</flux:button>
 

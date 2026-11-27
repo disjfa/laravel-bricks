@@ -1,7 +1,7 @@
 <div class="space-y-6">
     <div class="flex flex-wrap items-center justify-between gap-4">
         <div>
-            <flux:heading size="xl" level="1">{{ __('Media') }}</flux:heading>
+            <x-admin.heading icon="photo">{{ __('Media') }}</x-admin.heading>
             <flux:text class="mt-1">
                 {{ trans_choice('{0} No files yet.|{1} 1 file, :size in total.|[2,*] :count files, :size in total.', $this->mediaItems->total(), ['size' => $this->totalSize]) }}
             </flux:text>

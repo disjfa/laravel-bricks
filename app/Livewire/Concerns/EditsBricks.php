@@ -8,7 +8,6 @@ use App\Bricks\BrickType;
 use App\Models\Brick;
 use Flux\Flux;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -96,9 +95,14 @@ trait EditsBricks
         $this->dispatchBricksUpdated();
     }
 
+    /**
+     * Handler for the up and down buttons. The editor scrolls along with the moved brick (brick-moved).
+     */
     public function moveBrick(string $key, int $direction): void
     {
         $this->sortBrick($key, $this->indexOfBrick($key) + $direction);
+
+        $this->dispatch('brick-moved', key: $key);
     }
 
     /**
@@ -129,7 +133,7 @@ trait EditsBricks
 
         $bricks = $this->validatedBricks();
 
-        DB::transaction(function () use ($brickable, $bricks) {
+        $brickable->recordingRevision(function () use ($brickable, $bricks) {
             $brickable->bricks()
                 ->whereNotIn('id', array_filter(Arr::pluck($bricks, 'id')))
                 ->delete();

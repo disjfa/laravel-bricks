@@ -48,12 +48,14 @@ new #[Layout('layouts::admin')] class extends Component
             ],
         ]);
 
-        $this->page->update([
-            'title' => $this->title,
-            'slug' => $this->slug,
-            ...$this->validatedSeo(),
-            ...$this->publishing->toAttributes(),
-        ]);
+        $this->page->recordingRevision(function (): void {
+            $this->page->update([
+                'title' => $this->title,
+                'slug' => $this->slug,
+                ...$this->validatedSeo(),
+                ...$this->publishing->toAttributes(),
+            ]);
+        });
 
         Flux::toast(variant: 'success', text: __('Settings saved.'));
     }

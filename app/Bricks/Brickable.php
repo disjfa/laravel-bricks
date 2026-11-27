@@ -3,17 +3,18 @@
 namespace App\Bricks;
 
 use App\Models\Brick;
+use App\Revisions\Revisionable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Spatie\MediaLibrary\HasMedia;
 
 /**
- * A model that is built from bricks in the admin (pages and blogs), with its own media panel.
- * Implemented with App\Concerns\HasBricks.
+ * A model that is built from bricks in the admin (pages and blogs), with its own media panel and revisions.
+ * Implemented with App\Concerns\HasBricks and App\Concerns\HasRevisions.
  *
  * @mixin Model
  */
-interface Brickable extends HasMedia
+interface Brickable extends HasMedia, Revisionable
 {
     public const string MediaCollection = 'media';
 

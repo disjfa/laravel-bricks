@@ -26,6 +26,25 @@ trait HasBricks
     }
 
     /**
+     * Replace the bricks with the ones from a revision snapshot (App\Http\Resources\Snapshots\BrickSnapshot).
+     *
+     * @param  array<int, array{type: string, data: array<string, mixed>, settings: array<string, mixed>|null}>  $bricks
+     */
+    protected function restoreBricks(array $bricks): void
+    {
+        $this->bricks()->delete();
+
+        foreach (array_values($bricks) as $position => $brick) {
+            $this->bricks()->create([
+                'type' => $brick['type'],
+                'data' => $brick['data'],
+                'settings' => $brick['settings'],
+                'position' => $position,
+            ]);
+        }
+    }
+
+    /**
      * @return array<int, array{id: int, name: string, url: string, thumb: string}>
      */
     public function imageMediaForPicker(): array

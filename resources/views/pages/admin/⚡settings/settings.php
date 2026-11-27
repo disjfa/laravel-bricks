@@ -2,6 +2,7 @@
 
 use App\Actions\Pwa\GenerateAppIcons;
 use App\Enums\ColorScheme;
+use App\Enums\SiteCorners;
 use App\Enums\SiteFont;
 use App\Enums\ThemeColor;
 use App\Features\SiteFeature;
@@ -62,6 +63,11 @@ new #[Layout('layouts::admin'), Title('Settings')] class extends Component
     public array $theme = [];
 
     /**
+     * A SiteCorners value.
+     */
+    public string $corners = 'medium';
+
+    /**
      * Whether each feature is turned on, keyed by the class basename (like "Blogs").
      *
      * @var array<string, bool>
@@ -82,6 +88,7 @@ new #[Layout('layouts::admin'), Title('Settings')] class extends Component
         $this->fontText = $fonts->text->value ?? '';
         $this->fontHeading = $fonts->heading->value ?? '';
         $this->theme = app(ThemeSettings::class)->palette();
+        $this->corners = app(ThemeSettings::class)->corners()->value;
 
         $this->features = collect(SiteFeature::All)
             ->mapWithKeys(fn (string $feature) => [class_basename($feature) => Feature::active($feature)])
@@ -232,6 +239,8 @@ new #[Layout('layouts::admin'), Title('Settings')] class extends Component
                 $this->theme[$scheme->value][$color->value] = $color->default($scheme);
             }
         }
+
+        $this->corners = SiteCorners::Medium->value;
     }
 
     public function save(): void
@@ -244,6 +253,7 @@ new #[Layout('layouts::admin'), Title('Settings')] class extends Component
             'appDisplay' => ['required', Rule::in(PwaSettings::DisplayModes)],
             'fontText' => ['nullable', Rule::enum(SiteFont::class)],
             'fontHeading' => ['nullable', Rule::enum(SiteFont::class)],
+            'corners' => ['required', Rule::enum(SiteCorners::class)],
             'features' => ['array'],
             'features.*' => ['boolean'],
         ];
@@ -286,6 +296,7 @@ new #[Layout('layouts::admin'), Title('Settings')] class extends Component
         $theme = app(ThemeSettings::class);
         $theme->light = $this->themeColors(ColorScheme::Light);
         $theme->dark = $this->themeColors(ColorScheme::Dark);
+        $theme->corners = $this->corners;
         $theme->save();
 
         if ($this->iconBackgroundColor() !== $previousBackgroundColor) {

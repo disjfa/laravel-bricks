@@ -5,9 +5,11 @@ namespace App\Models;
 use App\Bricks\Brickable;
 use App\Concerns\HasBricks;
 use App\Concerns\HasPublishing;
+use App\Concerns\HasRevisions;
 use App\Concerns\HasSeo;
 use App\Enums\BlogTagType;
 use App\Enums\PublishStatus;
+use App\Http\Resources\Snapshots\BlogSnapshot;
 use App\Settings\SeoSettings;
 use Carbon\CarbonInterface;
 use Database\Factories\BlogFactory;
@@ -15,6 +17,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Carbon;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -56,6 +59,7 @@ class Blog extends Model implements Brickable
     use HasFactory;
 
     use HasPublishing;
+    use HasRevisions;
     use HasSeo;
     use HasSlug;
     use HasTags;
@@ -90,6 +94,25 @@ class Blog extends Model implements Brickable
     public function displayDate(): ?CarbonInterface
     {
         return $this->published_at ?? $this->created_at;
+    }
+
+    public function snapshotResource(): JsonResource
+    {
+        return new BlogSnapshot($this);
+    }
+
+    public function restoreSnapshot(array $snapshot): void
+    {
+        $this->update([
+            ...collect($snapshot)->only(['title', 'excerpt', 'image_url', 'meta_title', 'meta_description', 'meta_image', 'noindex', 'status', 'published_at', 'published_until'])->all(),
+            'slug' => $this->restorableSlug($snapshot['slug']),
+        ]);
+
+        $this->syncTagsWithType($snapshot['categories'], BlogTagType::Category->value);
+        $this->syncTagsWithType($snapshot['tags'], BlogTagType::Tag->value);
+        $this->load('tags');
+
+        $this->restoreBricks($snapshot['bricks']);
     }
 
     public function adminSection(): string

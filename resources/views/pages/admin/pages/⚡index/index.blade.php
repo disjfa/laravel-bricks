@@ -1,7 +1,7 @@
 <div class="space-y-6">
     <div class="flex flex-wrap items-center justify-between gap-4">
         <div>
-            <flux:heading size="xl" level="1">{{ __('Pages') }}</flux:heading>
+            <x-admin.heading icon="document-text">{{ __('Pages') }}</x-admin.heading>
             <flux:text class="mt-1">{{ __('Pages are built from bricks.') }}</flux:text>
         </div>
 

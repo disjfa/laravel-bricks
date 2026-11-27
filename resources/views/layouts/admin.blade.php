@@ -13,9 +13,13 @@
             </flux:sidebar.header>
 
             <flux:sidebar.nav>
-                <flux:sidebar.group :heading="__('Admin')" class="grid">
-                    <x-menu.sidebar :menu="Spatie\Menu\Laravel\Menu::admin()" />
-                </flux:sidebar.group>
+                @foreach (Spatie\Menu\Laravel\Menu::adminGroups() as $heading => $menu)
+                    @if (count($menu) > 0)
+                        <flux:sidebar.group :heading="$heading" class="grid">
+                            <x-menu.sidebar :menu="$menu" />
+                        </flux:sidebar.group>
+                    @endif
+                @endforeach
             </flux:sidebar.nav>
 
             <flux:spacer />

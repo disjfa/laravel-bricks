@@ -101,6 +101,32 @@ it('renders bricks in the container for their width', function (?array $settings
     'full' => [['width' => 'full'], 'full', 'w-full px-6'],
 ]);
 
+it('aligns the text of a text brick', function (?array $settings, string $alignClass) {
+    $page = Page::factory()->published()->create(['slug' => 'aligned']);
+    Brick::factory()->for($page, 'brickable')->create(['data' => ['body' => 'Aligned text'], 'settings' => $settings]);
+
+    $this->get('/aligned')
+        ->assertOk()
+        ->assertSee('prose-img:object-cover '.$alignClass.'"', false);
+})->with([
+    'without settings' => [null, 'text-start'],
+    'center' => [['align' => 'center'], 'text-center'],
+    'right' => [['align' => 'end'], 'text-end'],
+]);
+
+it('aligns a heading brick', function (?array $settings, string $alignClass) {
+    $page = Page::factory()->published()->create(['slug' => 'aligned-heading']);
+    Brick::factory()->for($page, 'brickable')->heading('Aligned heading')->create(['settings' => $settings]);
+
+    $this->get('/aligned-heading')
+        ->assertOk()
+        ->assertSee('text-balance '.$alignClass.'">Aligned heading</h2>', false);
+})->with([
+    'without settings' => [null, 'text-start'],
+    'center' => [['align' => 'center'], 'text-center'],
+    'right' => [['align' => 'end'], 'text-end'],
+]);
+
 it('uses the theme colors from the settings', function () {
     updateSettings(ThemeSettings::class, ['light' => ['accent' => '#1d4ed8', 'menubar_background' => '#fefce8']]);
     Page::factory()->published()->create(['slug' => 'home']);

@@ -21,18 +21,30 @@ class MenuServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        Menu::macro('admin', function (): Menu {
-            return Menu::new()
-                ->add(MenuLink::toRoute('admin.dashboard', __('Dashboard'))->icon('home')->exact())
-                ->addIf(Gate::allows('viewAny', Page::class), MenuLink::toRoute('admin.pages.index', __('Pages'))->icon('document-text'))
-                ->addIf(Feature::active(Blogs::class) && Gate::allows('viewAny', Blog::class), MenuLink::toRoute('admin.blogs.index', __('Blogs'))->icon('newspaper'))
-                ->addIf(Feature::active(Forms::class) && Gate::allows('viewAny', Form::class), MenuLink::toRoute('admin.forms.index', __('Forms'))->icon('queue-list'))
-                ->addIf(Feature::active(SiteMenu::class) && Gate::allows('viewAny', MenuModel::class), MenuLink::toRoute('admin.menus.index', __('Menus'))->icon('bars-3'))
-                ->addIf(Gate::allows('viewAny', Media::class), MenuLink::toRoute('admin.media.index', __('Media'))->icon('photo'))
-                ->addIf(Gate::allows('viewAny', User::class), MenuLink::toRoute('admin.users.index', __('Users'))->icon('users'))
-                ->addIf(Gate::allows('manageSettings'), MenuLink::toRoute('admin.settings', __('Settings'))->icon('cog-6-tooth'))
-                ->addIf(Gate::allows('manageApiTokens'), MenuLink::toRoute('admin.api-tokens', __('API tokens'))->icon('key'))
-                ->setActiveFromRequest();
+        /*
+         * The admin sidebar, in groups: the content, the modules that can be turned off, and the settings.
+         * The layout skips a group without links.
+         *
+         * @return array<string, Menu>
+         */
+        Menu::macro('adminGroups', function (): array {
+            return [
+                __('Admin') => Menu::new()
+                    ->add(MenuLink::toRoute('admin.dashboard', __('Dashboard'))->icon('home')->exact())
+                    ->addIf(Gate::allows('viewAny', Page::class), MenuLink::toRoute('admin.pages.index', __('Pages'))->icon('document-text'))
+                    ->addIf(Gate::allows('viewAny', Media::class), MenuLink::toRoute('admin.media.index', __('Media'))->icon('photo'))
+                    ->setActiveFromRequest(),
+                __('Modules') => Menu::new()
+                    ->addIf(Feature::active(Blogs::class) && Gate::allows('viewAny', Blog::class), MenuLink::toRoute('admin.blogs.index', __('Blogs'))->icon('newspaper'))
+                    ->addIf(Feature::active(Forms::class) && Gate::allows('viewAny', Form::class), MenuLink::toRoute('admin.forms.index', __('Forms'))->icon('queue-list'))
+                    ->addIf(Feature::active(SiteMenu::class) && Gate::allows('viewAny', MenuModel::class), MenuLink::toRoute('admin.menus.index', __('Menus'))->icon('bars-3'))
+                    ->setActiveFromRequest(),
+                __('Settings') => Menu::new()
+                    ->addIf(Gate::allows('viewAny', User::class), MenuLink::toRoute('admin.users.index', __('Users'))->icon('users'))
+                    ->addIf(Gate::allows('manageSettings'), MenuLink::toRoute('admin.settings', __('Settings'))->icon('cog-6-tooth'))
+                    ->addIf(Gate::allows('manageApiTokens'), MenuLink::toRoute('admin.api-tokens', __('API tokens'))->icon('key'))
+                    ->setActiveFromRequest(),
+            ];
         });
 
         /*

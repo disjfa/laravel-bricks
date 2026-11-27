@@ -1,11 +1,15 @@
 <?php
 
+use App\Features\Blogs;
+use App\Features\Forms;
+use App\Features\SiteMenu;
 use App\Models\Blog;
 use App\Models\Form;
 use App\Models\Menu;
 use App\Models\Page;
 use App\Models\User;
 use Database\Seeders\RolesSeeder;
+use Laravel\Pennant\Feature;
 
 beforeEach(function () {
     $this->seed(RolesSeeder::class);
@@ -18,15 +22,18 @@ dataset('admin routes', [
     'page editor' => fn () => route('admin.pages.edit', Page::factory()->create()),
     'page settings' => fn () => route('admin.pages.settings', Page::factory()->create()),
     'page media' => fn () => route('admin.pages.media', Page::factory()->create()),
+    'page revisions' => fn () => route('admin.pages.revisions', Page::factory()->create()),
     'media library' => fn () => route('admin.media.index'),
     'blogs' => fn () => route('admin.blogs.index'),
     'blog editor' => fn () => route('admin.blogs.edit', Blog::factory()->create()),
     'blog settings' => fn () => route('admin.blogs.settings', Blog::factory()->create()),
     'blog media' => fn () => route('admin.blogs.media', Blog::factory()->create()),
+    'blog revisions' => fn () => route('admin.blogs.revisions', Blog::factory()->create()),
     'forms' => fn () => route('admin.forms.index'),
     'form builder' => fn () => route('admin.forms.edit', Form::factory()->contact()->create()),
     'form settings' => fn () => route('admin.forms.settings', Form::factory()->create()),
     'form submissions' => fn () => route('admin.forms.submissions', Form::factory()->create()),
+    'form revisions' => fn () => route('admin.forms.revisions', Form::factory()->create()),
     'menus' => fn () => route('admin.menus.index'),
     'settings' => fn () => route('admin.settings'),
     'api tokens' => fn () => route('admin.api-tokens'),
@@ -56,4 +63,25 @@ it('shows the admin menu items to admins', function () {
         ->get(route('admin.dashboard'))
         ->assertSee(route('admin.pages.index'))
         ->assertSee(route('admin.users.index'));
+});
+
+it('groups the admin menu into admin, modules and settings', function () {
+    $admin = User::factory()->admin()->create();
+
+    $this->actingAs($admin)
+        ->get(route('admin.dashboard'))
+        ->assertSeeInOrder([
+            'Admin', route('admin.pages.index'),
+            'Modules', route('admin.blogs.index'),
+            'Settings', route('admin.users.index'),
+        ]);
+});
+
+it('hides the modules group when every module is turned off', function () {
+    Feature::deactivate([Blogs::class, Forms::class, SiteMenu::class]);
+    $admin = User::factory()->admin()->create();
+
+    $this->actingAs($admin)
+        ->get(route('admin.dashboard'))
+        ->assertDontSee('Modules');
 });

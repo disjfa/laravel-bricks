@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Form;
+use Illuminate\Support\Facades\Validator;
 use Flux\Flux;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -16,6 +17,11 @@ new #[Layout('layouts::admin')] class extends Component {
 
     public string $successMessage = '';
 
+    /**
+     * One or more addresses, separated by commas. Empty sends submissions to the admins.
+     */
+    public string $notificationEmail = '';
+
     public function mount(Form $form): void
     {
         $this->authorize('update', $form);
@@ -25,6 +31,7 @@ new #[Layout('layouts::admin')] class extends Component {
         $this->description = $form->description ?? '';
         $this->submitLabel = $form->submit_label ?? '';
         $this->successMessage = $form->success_message ?? '';
+        $this->notificationEmail = $form->notification_email ?? '';
     }
 
     public function save(): void
@@ -36,14 +43,24 @@ new #[Layout('layouts::admin')] class extends Component {
             'description' => ['nullable', 'string', 'max:2000'],
             'submitLabel' => ['nullable', 'string', 'max:255'],
             'successMessage' => ['nullable', 'string', 'max:2000'],
-        ]);
+            'notificationEmail' => ['nullable', 'string', 'max:1000', function (string $attribute, string $value, Closure $fail): void {
+                $addresses = array_filter(array_map('trim', explode(',', $value)));
 
-        $this->form->update([
-            'name' => $this->name,
-            'description' => $this->description ?: null,
-            'submit_label' => $this->submitLabel ?: null,
-            'success_message' => $this->successMessage ?: null,
-        ]);
+                if (Validator::make(['addresses' => $addresses], ['addresses.*' => ['email']])->fails()) {
+                    $fail(__('Use email addresses separated by commas, like info@example.com, sales@example.com.'));
+                }
+            }],
+        ], attributes: ['notificationEmail' => __('send submissions to')]);
+
+        $this->form->recordingRevision(function (): void {
+            $this->form->update([
+                'name' => $this->name,
+                'description' => $this->description ?: null,
+                'submit_label' => $this->submitLabel ?: null,
+                'success_message' => $this->successMessage ?: null,
+                'notification_email' => $this->notificationEmail ?: null,
+            ]);
+        });
 
         Flux::toast(variant: 'success', text: __('Settings saved.'));
     }
@@ -73,6 +90,15 @@ new #[Layout('layouts::admin')] class extends Component {
             <flux:input wire:model="submitLabel" :label="__('Submit button')" :placeholder="__('Send')" />
 
             <flux:textarea wire:model="successMessage" :label="__('Success message')" :placeholder="__('Thank you, we received your message.')" rows="3" />
+
+            <flux:input
+                wire:model="notificationEmail"
+                type="text"
+                :label="__('Send submissions to')"
+                :placeholder="__('The admins')"
+                :description:trailing="__('Every submission is emailed here. Separate addresses with commas. Empty sends it to the admins.')"
+                data-test="notification-email"
+            />
         </flux:card>
 
         {{-- Lets Enter submit the form, the visible save button lives in the header bar. --}}

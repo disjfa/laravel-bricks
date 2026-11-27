@@ -3,7 +3,8 @@
     cascade layer, so it wins over the Tailwind theme and the Flux defaults. Only elements inside
     [data-site-theme] get the colors (the website body and the brick preview), the admin keeps its own.
 --}}
-@php($palette = app(App\Settings\ThemeSettings::class)->palette())
+@php($themeSettings = app(App\Settings\ThemeSettings::class))
+@php($palette = $themeSettings->palette())
 
 @include('partials.fonts')
 
@@ -22,6 +23,13 @@
             @foreach ($color->cssVariables() as $variable)
                 {{ $variable }}: {{ $palette['dark'][$color->value] }};
             @endforeach
+        @endforeach
+    }
+
+    /* The corners from the settings page (App\Enums\SiteCorners): every rounded-* class uses these sizes. */
+    [data-site-theme] {
+        @foreach ($themeSettings->corners()->cssVariables() as $variable => $value)
+            {{ $variable }}: {{ $value }};
         @endforeach
     }
 

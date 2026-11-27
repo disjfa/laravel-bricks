@@ -63,7 +63,7 @@ new #[Layout('layouts::admin'), Title('API tokens')] class extends Component {
 <div class="space-y-6">
     <div class="flex flex-wrap items-center justify-between gap-4">
         <div>
-            <flux:heading size="xl" level="1">{{ __('API tokens') }}</flux:heading>
+            <x-admin.heading icon="key">{{ __('API tokens') }}</x-admin.heading>
             <flux:text class="mt-1">
                 {{ __('Tokens give read access to the published content over the API. Send one as a bearer token.') }}
                 <flux:link :href="route('scramble.docs.ui')" target="_blank">{{ __('API documentation') }}</flux:link>

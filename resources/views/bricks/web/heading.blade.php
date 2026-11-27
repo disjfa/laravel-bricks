@@ -7,4 +7,4 @@
     };
 @endphp
 
-<h{{ $level }} class="{{ $classes }} text-balance">{{ $data['text'] ?? '' }}</h{{ $level }}>
+<h{{ $level }} class="{{ $classes }} text-balance {{ App\Enums\TextAlign::fromSettings($settings)->textClass() }}">{{ $data['text'] ?? '' }}</h{{ $level }}>

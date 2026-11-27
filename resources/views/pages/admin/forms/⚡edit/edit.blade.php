@@ -10,7 +10,7 @@
                 <div wire:key="field-{{ $field['key'] }}-{{ $index }}" wire:sort:item="{{ $field['key'] }}" class="group/field">
                     <flux:card class="space-y-4 p-4! transition group-hover/field:ring-2 group-hover/field:ring-zinc-200 dark:group-hover/field:ring-zinc-600">
                         <div class="flex items-center gap-2">
-                            <div wire:sort:handle class="cursor-grab text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200" title="{{ __('Drag to reorder') }}">
+                            <div wire:sort:handle class="cursor-n-resize text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200" title="{{ __('Drag to reorder') }}">
                                 <flux:icon name="bars-2" variant="micro" />
                             </div>
 
@@ -62,8 +62,8 @@
             </div>
         @endif
 
-        {{-- Sticky at the bottom of the canvas column, so adding is always one click away. --}}
-        <div class="sticky bottom-0 z-10 -mx-4 -mb-4 flex justify-center bg-linear-to-t from-(--site-background) from-60% to-transparent px-4 pt-8 pb-4">
+        {{-- Sticky at the bottom of the canvas column, so adding is always one click away. -bottom-4 reaches past the padding of the column. --}}
+        <div class="sticky -bottom-4 z-10 -mx-4 -mb-4 flex justify-center bg-linear-to-t from-(--site-background) from-60% to-transparent px-4 pt-8 pb-4">
             @include('form-fields.inserter', ['position' => null, 'compact' => false])
         </div>
     </x-admin.screen.column>

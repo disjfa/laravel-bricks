@@ -1,7 +1,7 @@
 <div class="space-y-6">
     <div class="flex flex-wrap items-center justify-between gap-4">
         <div>
-            <flux:heading size="xl" level="1">{{ __('Blogs') }}</flux:heading>
+            <x-admin.heading icon="newspaper">{{ __('Blogs') }}</x-admin.heading>
             <flux:text class="mt-1">{{ __('Blogs are shown at /blog/{slug} and listed by the blogs brick.') }}</flux:text>
         </div>
 

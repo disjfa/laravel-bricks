@@ -32,4 +32,11 @@ class TextBrick extends BaseBrick
             Markdown::make('body')->label(__('Text'))->required(),
         ];
     }
+
+    protected function extraSettings(): array
+    {
+        return [
+            $this->alignSetting(),
+        ];
+    }
 }

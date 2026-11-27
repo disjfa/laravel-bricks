@@ -57,7 +57,7 @@ new #[Layout('layouts::admin'), Title('Menus')] class extends Component {
 <div class="space-y-6">
     <div class="flex flex-wrap items-center justify-between gap-4">
         <div>
-            <flux:heading size="xl" level="1">{{ __('Menus') }}</flux:heading>
+            <x-admin.heading icon="bars-3">{{ __('Menus') }}</x-admin.heading>
             <flux:text class="mt-1">{{ __('The website shows the menu with the handle ":main" in the header and ":footer" in the footer.', ['main' => App\Models\Menu::MainHandle, 'footer' => App\Models\Menu::FooterHandle]) }}</flux:text>
         </div>
 
