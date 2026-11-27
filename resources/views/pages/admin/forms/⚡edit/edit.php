@@ -6,7 +6,6 @@ use App\Models\Form;
 use App\Models\FormField;
 use Flux\Flux;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -132,7 +131,7 @@ new #[Layout('layouts::admin')] class extends Component
 
         $fields = $this->validatedFields();
 
-        DB::transaction(function () use ($fields) {
+        $this->form->recordingRevision(function () use ($fields) {
             $this->form->fields()
                 ->whereNotIn('id', array_filter(Arr::pluck($fields, 'id')))
                 ->delete();

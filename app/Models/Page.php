@@ -5,14 +5,17 @@ namespace App\Models;
 use App\Bricks\Brickable;
 use App\Concerns\HasBricks;
 use App\Concerns\HasPublishing;
+use App\Concerns\HasRevisions;
 use App\Concerns\HasSeo;
 use App\Enums\PublishStatus;
+use App\Http\Resources\Snapshots\PageSnapshot;
 use App\Settings\SeoSettings;
 use Database\Factories\PageFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Carbon;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -46,6 +49,7 @@ class Page extends Model implements Brickable
     use HasFactory;
 
     use HasPublishing;
+    use HasRevisions;
     use HasSeo;
     use HasSlug;
     use InteractsWithMedia;
@@ -71,6 +75,21 @@ class Page extends Model implements Brickable
             ->generateSlugsFrom('title')
             ->saveSlugsTo('slug')
             ->doNotGenerateSlugsOnUpdate();
+    }
+
+    public function snapshotResource(): JsonResource
+    {
+        return new PageSnapshot($this);
+    }
+
+    public function restoreSnapshot(array $snapshot): void
+    {
+        $this->update([
+            ...collect($snapshot)->only(['title', 'meta_title', 'meta_description', 'meta_image', 'noindex', 'status', 'published_at', 'published_until'])->all(),
+            'slug' => $this->restorableSlug($snapshot['slug']),
+        ]);
+
+        $this->restoreBricks($snapshot['bricks']);
     }
 
     public function adminSection(): string

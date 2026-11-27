@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use App\Concerns\HasRevisions;
+use App\Http\Resources\Snapshots\FormSnapshot;
+use App\Revisions\Revisionable;
 use Database\Factories\FormFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Carbon;
 
 /**
@@ -24,10 +28,12 @@ use Illuminate\Support\Carbon;
  * @property-read Collection<int, FormSubmission> $submissions
  */
 #[Fillable(['name', 'description', 'submit_label', 'success_message'])]
-class Form extends Model
+class Form extends Model implements Revisionable
 {
     /** @use HasFactory<FormFactory> */
     use HasFactory;
+
+    use HasRevisions;
 
     /**
      * @return HasMany<FormField, $this>
@@ -43,6 +49,30 @@ class Form extends Model
     public function submissions(): HasMany
     {
         return $this->hasMany(FormSubmission::class);
+    }
+
+    public function snapshotResource(): JsonResource
+    {
+        return new FormSnapshot($this);
+    }
+
+    /**
+     * The submissions stay as they are: they keep the answers under the keys of the fields.
+     */
+    public function restoreSnapshot(array $snapshot): void
+    {
+        $this->update(collect($snapshot)->only(['name', 'description', 'submit_label', 'success_message'])->all());
+
+        $this->fields()->delete();
+
+        foreach (array_values($snapshot['fields']) as $position => $field) {
+            $this->fields()->create([
+                'type' => $field['type'],
+                'name' => $field['name'],
+                'settings' => $field['settings'],
+                'position' => $position,
+            ]);
+        }
     }
 
     public function submitLabel(): string

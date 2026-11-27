@@ -58,6 +58,10 @@ Route::prefix('admin')
             ->can('update', 'page')
             ->name('pages.media');
 
+        Route::livewire('pages/{page}/revisions', 'pages::admin.pages.revisions')
+            ->can('update', 'page')
+            ->name('pages.revisions');
+
         Route::middleware(EnsureFeaturesAreActive::using(Blogs::class))->group(function () {
             Route::livewire('blogs', 'pages::admin.blogs.index')
                 ->can('viewAny', Blog::class)
@@ -74,6 +78,10 @@ Route::prefix('admin')
             Route::livewire('blogs/{blog}/media', 'pages::admin.blogs.media')
                 ->can('update', 'blog')
                 ->name('blogs.media');
+
+            Route::livewire('blogs/{blog}/revisions', 'pages::admin.blogs.revisions')
+                ->can('update', 'blog')
+                ->name('blogs.revisions');
         });
 
         Route::middleware(EnsureFeaturesAreActive::using(Forms::class))->group(function () {
@@ -92,6 +100,10 @@ Route::prefix('admin')
             Route::livewire('forms/{form}/submissions', 'pages::admin.forms.submissions')
                 ->can('update', 'form')
                 ->name('forms.submissions');
+
+            Route::livewire('forms/{form}/revisions', 'pages::admin.forms.revisions')
+                ->can('update', 'form')
+                ->name('forms.revisions');
         });
 
         Route::middleware(EnsureFeaturesAreActive::using(SiteMenu::class))->group(function () {

@@ -7,6 +7,7 @@ forms, buttons and more), with a live preview next to the editor.
 - **Form builder**, with submissions in the admin and spam protection (Cloudflare Turnstile)
 - **Menu builder** for the header and footer menus
 - **Media library** for images and files
+- **Revisions** of pages, blogs and forms: see every saved version and revert to it
 - **Site settings**: title, logo, SEO, installable app (PWA), fonts, theme colors and corners
 - **Content API**: read-only, with tokens and OpenAPI docs
 - **Modules**: blogs, forms and the site menu can be turned off on the settings page

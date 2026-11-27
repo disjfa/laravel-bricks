@@ -38,12 +38,14 @@ new #[Layout('layouts::admin')] class extends Component {
             'successMessage' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $this->form->update([
-            'name' => $this->name,
-            'description' => $this->description ?: null,
-            'submit_label' => $this->submitLabel ?: null,
-            'success_message' => $this->successMessage ?: null,
-        ]);
+        $this->form->recordingRevision(function (): void {
+            $this->form->update([
+                'name' => $this->name,
+                'description' => $this->description ?: null,
+                'submit_label' => $this->submitLabel ?: null,
+                'success_message' => $this->successMessage ?: null,
+            ]);
+        });
 
         Flux::toast(variant: 'success', text: __('Settings saved.'));
     }

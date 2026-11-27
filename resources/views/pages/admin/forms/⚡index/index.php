@@ -46,7 +46,7 @@ new #[Layout('layouts::admin'), Title('Forms')] class extends Component
 
         $this->authorize('delete', $form);
 
-        $form->delete();
+        $form->deleteWithRevision();
 
         Flux::modal("delete-form-{$formId}")->close();
 

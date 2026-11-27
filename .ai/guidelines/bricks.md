@@ -47,8 +47,15 @@ so keep it free of machine-specific setup and hardcoded infrastructure.
 - Admin and website share the theme: colors, fonts and corners from the settings page are CSS custom properties on
   `[data-site-theme]` (`resources/views/partials/site-theme.blade.php`).
 
-## Planned, not started
+## Revisions
 
-Revisions with revert for pages, blogs, forms and menus: one generic setup that stores a full JSON snapshot (made
-with API resources) of the model and its ordered children after every save, logged per model. Do not start it
-unless asked.
+Pages, blogs and forms keep a full snapshot after every save (`App\Revisions\Revisionable`, `App\Concerns\HasRevisions`),
+shown on their Revisions tab with a preview and a revert.
+
+- Wrap every save of such a model and its children in `$model->recordingRevision(fn () => ...)`, and delete it with
+  `$model->deleteWithRevision()`, so no change is missed.
+- A snapshot is the model's raw fields and its ordered children, made by its resource in `app/Http/Resources/Snapshots`
+  (not the API resources, which fill in defaults). A new field on the model goes into its snapshot resource and its
+  `restoreSnapshot()`.
+- Not in revisions: form submissions, users, media files (bricks refer to them) and the site settings.
+- Planned, not started: revisions for menus, and an activity page that shows all changes and restores deleted items.
