@@ -4,6 +4,11 @@ use App\Models\Brick;
 use App\Models\Form;
 use App\Models\FormField;
 use App\Models\Page;
+use App\Models\User;
+use App\Notifications\FormSubmitted;
+use Database\Seeders\RolesSeeder;
+use Illuminate\Notifications\AnonymousNotifiable;
+use Illuminate\Support\Facades\Notification;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 
@@ -88,6 +93,68 @@ it('limits the number of submissions per visitor', function () {
 /**
  * Show the form brick and take a few seconds to fill it in, like a visitor would.
  */
+describe('submission email', function () {
+    it('emails a submission to the addresses of the form, with the answers and a reply to the visitor', function () {
+        Notification::fake();
+        $form = Form::factory()->contact()->create(['notification_email' => 'info@example.com, sales@example.com']);
+
+        fillForm($form->id)
+            ->set('values.name', 'Jane Doe')
+            ->set('values.email', 'jane@example.com')
+            ->set('values.message', 'Hello there')
+            ->call('submit')
+            ->assertHasNoErrors();
+
+        Notification::assertSentOnDemand(FormSubmitted::class, function (FormSubmitted $notification, array $channels, AnonymousNotifiable $notifiable) {
+            $mail = $notification->toMail($notifiable);
+
+            return $notifiable->routes['mail'] === ['info@example.com', 'sales@example.com']
+                && $mail->subject === 'New submission: Contact'
+                && in_array('**Message:** Hello there', $mail->introLines, true)
+                && $mail->replyTo === [['jane@example.com', null]];
+        });
+    });
+
+    it('emails the admins when the form has no addresses', function () {
+        Notification::fake();
+        $this->seed(RolesSeeder::class);
+        $admin = User::factory()->admin()->create();
+        User::factory()->create();
+        $form = Form::factory()->contact()->create(['notification_email' => null]);
+
+        fillForm($form->id)
+            ->set('values.name', 'Jane Doe')
+            ->set('values.email', 'jane@example.com')
+            ->call('submit');
+
+        Notification::assertSentTo($admin, FormSubmitted::class);
+        Notification::assertCount(1);
+    });
+
+    it('does not turn answers into links or formatting in the email', function () {
+        $form = Form::factory()->contact()->create();
+        $submission = $form->submissions()->create(['data' => ['name' => '[Click](https://evil.example)', 'email' => 'jane@example.com', 'message' => '**bold**']]);
+
+        $mail = (new FormSubmitted($submission))->toMail(new AnonymousNotifiable);
+
+        expect($mail->introLines)->toContain('**Name:** \\[Click\\]\\(https://evil\\.example\\)')
+            ->toContain('**Message:** \\*\\*bold\\*\\*');
+    });
+
+    it('keeps the submission when the mail server fails', function () {
+        Notification::shouldReceive('route')->andThrow(new RuntimeException('Mail server down'));
+        $form = Form::factory()->contact()->create(['notification_email' => 'info@example.com', 'success_message' => 'We will be in touch.']);
+
+        fillForm($form->id)
+            ->set('values.name', 'Jane Doe')
+            ->set('values.email', 'jane@example.com')
+            ->call('submit')
+            ->assertSee('We will be in touch.');
+
+        expect($form->submissions()->count())->toBe(1);
+    });
+});
+
 function fillForm(int $formId): Testable
 {
     $component = Livewire::test('site-form', ['formId' => $formId]);

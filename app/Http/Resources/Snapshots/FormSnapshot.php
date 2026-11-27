@@ -23,6 +23,7 @@ class FormSnapshot extends JsonResource
             'description' => $this->description,
             'submit_label' => $this->submit_label,
             'success_message' => $this->success_message,
+            'notification_email' => $this->notification_email,
             'fields' => FormFieldSnapshot::collection($this->fields()->get()),
         ];
     }

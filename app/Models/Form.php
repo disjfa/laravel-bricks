@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use App\Concerns\HasRevisions;
+use App\Enums\UserRole;
 use App\Http\Resources\Snapshots\FormSnapshot;
+use App\Notifications\FormSubmitted;
 use App\Revisions\Revisionable;
 use Database\Factories\FormFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -13,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Notification;
 
 /**
  * A form built in the form builder, placed on pages with the form brick.
@@ -22,12 +25,13 @@ use Illuminate\Support\Carbon;
  * @property string|null $description
  * @property string|null $submit_label
  * @property string|null $success_message
+ * @property string|null $notification_email
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Collection<int, FormField> $fields
  * @property-read Collection<int, FormSubmission> $submissions
  */
-#[Fillable(['name', 'description', 'submit_label', 'success_message'])]
+#[Fillable(['name', 'description', 'submit_label', 'success_message', 'notification_email'])]
 class Form extends Model implements Revisionable
 {
     /** @use HasFactory<FormFactory> */
@@ -61,7 +65,7 @@ class Form extends Model implements Revisionable
      */
     public function restoreSnapshot(array $snapshot): void
     {
-        $this->update(collect($snapshot)->only(['name', 'description', 'submit_label', 'success_message'])->all());
+        $this->update(collect($snapshot)->only(['name', 'description', 'submit_label', 'success_message', 'notification_email'])->all());
 
         $this->fields()->delete();
 
@@ -73,6 +77,41 @@ class Form extends Model implements Revisionable
                 'position' => $position,
             ]);
         }
+    }
+
+    /**
+     * The addresses from the notification email setting, or none when it is empty.
+     *
+     * @return array<int, string>
+     */
+    public function notificationRecipients(): array
+    {
+        return collect(explode(',', (string) $this->notification_email))
+            ->map(fn (string $address) => trim($address))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Email a new submission to the addresses of the form, or to the admins when it has none.
+     */
+    public function sendSubmissionNotification(FormSubmission $submission): void
+    {
+        $notification = new FormSubmitted($submission);
+        $recipients = $this->notificationRecipients();
+
+        if ($recipients === []) {
+            // Not User::role(): that throws when the admin role was not seeded yet.
+            $admins = User::query()->whereHas('roles', fn ($roles) => $roles->where('name', UserRole::Admin->value))->get();
+
+            Notification::send($admins, $notification);
+
+            return;
+        }
+
+        Notification::route('mail', $recipients)->notify($notification);
     }
 
     public function submitLabel(): string

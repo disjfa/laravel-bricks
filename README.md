@@ -4,7 +4,7 @@ A small CMS built with Laravel, Livewire and Flux. You build pages and blogs fro
 forms, buttons and more), with a live preview next to the editor.
 
 - **Pages and blogs** built from bricks, with categories and tags for blogs
-- **Form builder**, with submissions in the admin and spam protection (Cloudflare Turnstile)
+- **Form builder**, with submissions in the admin and by email, and spam protection (Cloudflare Turnstile)
 - **Menu builder** for the header and footer menus
 - **Media library** for images and files
 - **Revisions** of pages, blogs and forms: see every saved version and revert to it
@@ -50,10 +50,15 @@ Everything is set in `.env`:
 | --- | --- |
 | `DB_*` | The database |
 | `CACHE_STORE`, `QUEUE_CONNECTION`, `SESSION_DRIVER` | Defaults to the database and the sync queue; use Redis where you have it |
-| `MAIL_*` | Mail for password resets and email verification |
+| `MAIL_*` | Mail for form submissions, password resets and email verification |
 | `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | Spam protection for website forms (optional) |
 
-With a queue other than `sync`, run a worker (`php artisan queue:work`) to make image thumbnails.
+With a queue other than `sync`, run a worker (`php artisan queue:work`) to make image thumbnails and send the
+submission emails.
+
+Each form emails its submissions to the addresses on its Settings tab, or to the admins when it has none. To see those
+emails locally, run [Mailpit](https://mailpit.axllent.org) and set `MAIL_MAILER=smtp` and `MAIL_PORT=1025`; the
+mails show up at http://localhost:8025.
 
 ## Working on Bricks
 

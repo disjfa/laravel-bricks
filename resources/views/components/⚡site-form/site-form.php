@@ -102,12 +102,15 @@ new class extends Component
             return;
         }
 
-        $form->submissions()->create([
+        $submission = $form->submissions()->create([
             'data' => $form->renderableFields()
                 ->mapWithKeys(fn (FormField $field) => [$field->name => $validated[$field->name] ?? $field->emptyValue()])
                 ->all(),
             'ip_address' => request()->ip(),
         ]);
+
+        // The submission is stored: a mail server that fails is reported, but does not fail the form for the visitor.
+        rescue(fn () => $form->sendSubmissionNotification($submission));
 
         $this->resetValues();
         $this->submitted = true;
