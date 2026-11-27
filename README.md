@@ -31,16 +31,19 @@ composer setup
 folder and builds the assets. By default it uses SQLite (`database/database.sqlite`); for another database, create
 `.env` from `.env.example` with your database settings first.
 
-Then seed the database. This creates the roles, an admin account and example content:
+Then make your admin account:
 
 ```shell
-php artisan db:seed
+php artisan app:make:admin
 ```
+
+It asks for your name, email address and password. For a demo instead, seed the database with
+`php artisan db:seed`: that adds example pages, blogs, a form and menus, and an admin **admin@example.com** with the
+password **password** (change it right away).
 
 Start the app with `composer dev` (or point your web server at `public/`) and open http://localhost:8000.
 
-Sign in at `/login` with **admin@example.com** and the password **password**, and change that password under your
-profile settings. The admin is at `/admin`.
+Sign in at `/login`; the admin is at `/admin`.
 
 ## Configuration
 
@@ -82,7 +85,8 @@ built on your machine and uploaded, so the server does not need Node.
 
 3. The first deploy creates `shared/.env` on the server from `.env.example`. Edit it right away for production
    (`APP_ENV=production`, `APP_DEBUG=false`, `APP_URL`, the database and mail), generate a key with
-   `vendor/bin/dep artisan:key:generate`, and deploy again. Point the web server at `current/public`.
+   `php artisan key:generate --force` on the server, and deploy again. Point the web server at `current/public`, and
+   make your admin with `php artisan app:make:admin` in the `current` folder on the server.
 
 Every deploy installs the Composer packages, uploads the assets, links the storage, caches the config, routes and
 views, runs the migrations, switches to the new release and reloads the queue workers. `.env`, `storage` and an

@@ -49,7 +49,7 @@ if (($hostname = deploySetting('DEPLOY_HOST')) !== null) {
 
 desc('Builds the assets here and uploads them to the release');
 task('deploy:assets', function () {
-    runLocally('npm ci && npm run build', ['timeout' => 600]);
+    runLocally('npm ci && npm run build', cwd: __DIR__, timeout: 600);
 
     upload('public/build/', '{{release_path}}/public/build/');
 });
