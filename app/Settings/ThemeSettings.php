@@ -3,11 +3,12 @@
 namespace App\Settings;
 
 use App\Enums\ColorScheme;
+use App\Enums\SiteCorners;
 use App\Enums\ThemeColor;
 use Spatie\LaravelSettings\Settings;
 
 /**
- * The colors of the website and the admin, for the light and the dark scheme.
+ * The colors of the website and the admin, for the light and the dark scheme, and how rounded its corners are.
  */
 class ThemeSettings extends Settings
 {
@@ -20,6 +21,11 @@ class ThemeSettings extends Settings
      * @var array<string, string> color => hex
      */
     public array $dark;
+
+    /**
+     * A SiteCorners value.
+     */
+    public string $corners;
 
     public static function group(): string
     {
@@ -57,5 +63,13 @@ class ThemeSettings extends Settings
     public function color(ThemeColor $color, ColorScheme $scheme): string
     {
         return $this->colors($scheme)[$color->value];
+    }
+
+    /**
+     * The saved corners, or medium.
+     */
+    public function corners(): SiteCorners
+    {
+        return SiteCorners::tryFrom($this->corners) ?? SiteCorners::Medium;
     }
 }

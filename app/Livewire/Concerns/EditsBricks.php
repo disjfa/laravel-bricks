@@ -96,9 +96,14 @@ trait EditsBricks
         $this->dispatchBricksUpdated();
     }
 
+    /**
+     * Handler for the up and down buttons. The editor scrolls along with the moved brick (brick-moved).
+     */
     public function moveBrick(string $key, int $direction): void
     {
         $this->sortBrick($key, $this->indexOfBrick($key) + $direction);
+
+        $this->dispatch('brick-moved', key: $key);
     }
 
     /**

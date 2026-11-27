@@ -1,4 +1,4 @@
 {{-- CommonMark (GitHub flavored) via Str::markdown, with raw HTML escaped and unsafe links removed. --}}
-<div class="space-y-4 text-lg leading-relaxed text-(--site-text) [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:border-s-4 [&_blockquote]:border-zinc-300 [&_blockquote]:ps-4 [&_blockquote]:italic dark:[&_blockquote]:border-zinc-600 [&_img]:my-6 [&_img]:w-full [&_img]:rounded-xl [&_img]:object-cover [&_h2]:pt-2 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:text-zinc-900 dark:[&_h2]:text-white [&_h3]:pt-2 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:text-zinc-900 dark:[&_h3]:text-white [&_ol]:list-decimal [&_ol]:ps-6 [&_strong]:font-semibold [&_strong]:text-zinc-900 dark:[&_strong]:text-white [&_ul]:list-disc [&_ul]:ps-6">
+<div class="prose prose-lg prose-site max-w-none prose-img:w-full prose-img:rounded-xl prose-img:object-cover {{ App\Enums\TextAlign::fromSettings($settings)->textClass() }}">
     {!! Str::markdown($data['body'] ?? '', ['html_input' => 'escape', 'allow_unsafe_links' => false]) !!}
 </div>

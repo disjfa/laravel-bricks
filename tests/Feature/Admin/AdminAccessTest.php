@@ -1,11 +1,15 @@
 <?php
 
+use App\Features\Blogs;
+use App\Features\Forms;
+use App\Features\SiteMenu;
 use App\Models\Blog;
 use App\Models\Form;
 use App\Models\Menu;
 use App\Models\Page;
 use App\Models\User;
 use Database\Seeders\RolesSeeder;
+use Laravel\Pennant\Feature;
 
 beforeEach(function () {
     $this->seed(RolesSeeder::class);
@@ -56,4 +60,25 @@ it('shows the admin menu items to admins', function () {
         ->get(route('admin.dashboard'))
         ->assertSee(route('admin.pages.index'))
         ->assertSee(route('admin.users.index'));
+});
+
+it('groups the admin menu into admin, modules and settings', function () {
+    $admin = User::factory()->admin()->create();
+
+    $this->actingAs($admin)
+        ->get(route('admin.dashboard'))
+        ->assertSeeInOrder([
+            'Admin', route('admin.pages.index'),
+            'Modules', route('admin.blogs.index'),
+            'Settings', route('admin.users.index'),
+        ]);
+});
+
+it('hides the modules group when every module is turned off', function () {
+    Feature::deactivate([Blogs::class, Forms::class, SiteMenu::class]);
+    $admin = User::factory()->admin()->create();
+
+    $this->actingAs($admin)
+        ->get(route('admin.dashboard'))
+        ->assertDontSee('Modules');
 });

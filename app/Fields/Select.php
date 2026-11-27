@@ -9,6 +9,8 @@ class Select extends Field
      */
     protected array $options = [];
 
+    protected bool $isSegmented = false;
+
     /**
      * @param  array<string|int, string>  $options  value => label
      */
@@ -29,6 +31,21 @@ class Select extends Field
     public function getOptions(): array
     {
         return $this->options;
+    }
+
+    /**
+     * Show the options side by side as a segmented control instead of a dropdown. For a few short options.
+     */
+    public function segmented(): static
+    {
+        $this->isSegmented = true;
+
+        return $this;
+    }
+
+    public function isSegmented(): bool
+    {
+        return $this->isSegmented;
     }
 
     protected function typeRules(): array

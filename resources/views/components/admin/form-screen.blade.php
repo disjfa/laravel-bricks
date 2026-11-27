@@ -11,6 +11,7 @@
 
 <x-admin.screen
     :title="$form->name"
+    icon="queue-list"
     :back="route('admin.forms.index')"
     :tabs="$tabs"
     :save="$save"

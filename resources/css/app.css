@@ -3,12 +3,20 @@
 @import 'easymde/dist/easymde.min.css' layer(components);
 @import 'tom-select/dist/css/tom-select.css' layer(components);
 
+@plugin '@tailwindcss/typography';
+
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../vendor/livewire/flux-pro/stubs/**/*.blade.php';
 @source '../../vendor/livewire/flux/stubs/**/*.blade.php';
 
 @custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Hover styles on every device, like Tailwind 3. Tailwind 4 only applies them when the browser says it can hover,
+ * which leaves them out on touchscreen laptops and in the device toolbar of the browser.
+ */
+@custom-variant hover (&:hover);
 
 @theme {
     /* The system font. The website can use other fonts, chosen on the admin settings page (App\Enums\SiteFont). */
@@ -48,6 +56,25 @@
     ::file-selector-button {
         border-color: var(--color-gray-200, currentColor);
     }
+
+    /* Tailwind 4 gives buttons the default cursor. Everything that can be clicked gets the pointer again. */
+    :is(
+        button,
+        select,
+        summary,
+        label:has(input, ui-radio, ui-checkbox, ui-switch),
+        [role='button'],
+        [role='radio'],
+        [role='checkbox'],
+        [role='switch'],
+        [role='tab'],
+        [role='menuitem'],
+        [role='menuitemradio'],
+        [role='menuitemcheckbox'],
+        [role='option']
+    ):not(:disabled, [disabled], [aria-disabled='true']) {
+        cursor: pointer;
+    }
 }
 
 [data-flux-field]:not(ui-radio, ui-checkbox) {
@@ -67,6 +94,30 @@ select:focus[data-flux-control] {
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */
+
+/*
+ * Rich content on the website (like the Markdown of the text brick): use it with "prose prose-site".
+ * The prose colors follow the theme colors of the admin settings page (partials.site-theme), in light and dark.
+ */
+@utility prose-site {
+    --tw-prose-body: var(--site-text);
+    --tw-prose-headings: var(--site-text);
+    --tw-prose-lead: color-mix(in srgb, var(--site-text) 80%, transparent);
+    --tw-prose-links: var(--color-accent-content);
+    --tw-prose-bold: var(--site-text);
+    --tw-prose-counters: color-mix(in srgb, var(--site-text) 60%, transparent);
+    --tw-prose-bullets: color-mix(in srgb, var(--site-text) 40%, transparent);
+    --tw-prose-hr: color-mix(in srgb, var(--site-text) 20%, transparent);
+    --tw-prose-quotes: var(--site-text);
+    --tw-prose-quote-borders: color-mix(in srgb, var(--site-text) 25%, transparent);
+    --tw-prose-captions: color-mix(in srgb, var(--site-text) 60%, transparent);
+    --tw-prose-kbd: var(--site-text);
+    --tw-prose-code: var(--site-text);
+    --tw-prose-pre-code: var(--site-background);
+    --tw-prose-pre-bg: var(--site-text);
+    --tw-prose-th-borders: color-mix(in srgb, var(--site-text) 25%, transparent);
+    --tw-prose-td-borders: color-mix(in srgb, var(--site-text) 15%, transparent);
+}
 
 /* Hide Alpine elements until Alpine has started. */
 [x-cloak] {

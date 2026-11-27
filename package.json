@@ -7,6 +7,7 @@
         "dev": "vp dev"
     },
     "dependencies": {
+        "@tailwindcss/typography": "^0.5.20",
         "@tailwindcss/vite": "^4.1.11",
         "concurrently": "^10.0.3",
         "easymde": "2.21.0",

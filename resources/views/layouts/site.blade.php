@@ -9,62 +9,65 @@
         @include('partials.impersonation-banner')
 
         {{-- Navigation comes from the menu builder (the "main" menu), see MenuServiceProvider. --}}
-        <flux:header container class="sticky top-0 flex border-b *:h-auto border-zinc-200 backdrop-blur dark:border-zinc-700" data-site-menubar>
-            <x-app-logo href="{{ route('home') }}" />
+        {{-- Not Flux's header container (max-w-7xl): the same width as a wide brick (App\Enums\BrickWidth::Wide), so the menu lines up with the content. --}}
+        <flux:header class="sticky top-0 flex border-b border-zinc-200 px-0! backdrop-blur dark:border-zinc-700" data-site-menubar>
+            <div class="mx-auto flex w-full max-w-6xl items-center px-6">
+                <x-app-logo href="{{ route('home') }}" />
 
-            <flux:spacer />
+                <flux:spacer />
 
-            @if ($mainMenu->count() > 0)
-                <x-menu.navbar :menu="$mainMenu" class="-mb-px max-sm:hidden" data-test="main-menu" />
+                @if ($mainMenu->count() > 0)
+                    <x-menu.navbar :menu="$mainMenu" class="-mb-px max-sm:hidden" data-test="main-menu" />
 
-                {{--
-                    Mobile menu: a sidebar that slides in from the right. Not a Flux flyout: its scroll lock
-                    reserves the scrollbar gutter, which keeps the panel off the right edge.
-                --}}
-                <div x-data="{ open: false }" x-on:keydown.escape.window="open = false" class="sm:hidden">
-                    <flux:button variant="ghost" icon="bars-3" x-on:click="open = true" x-bind:aria-expanded="open" aria-controls="site-menu-sidebar" :aria-label="__('Open menu')" data-test="site-menu-button" />
+                    {{--
+                        Mobile menu: a sidebar that slides in from the right. Not a Flux flyout: its scroll lock
+                        reserves the scrollbar gutter, which keeps the panel off the right edge.
+                    --}}
+                    <div x-data="{ open: false }" x-on:keydown.escape.window="open = false" class="sm:hidden">
+                        <flux:button variant="ghost" icon="bars-3" x-on:click="open = true" x-bind:aria-expanded="open" aria-controls="site-menu-sidebar" :aria-label="__('Open menu')" data-test="site-menu-button" />
 
-                    <template x-teleport="body">
-                        <div x-show="open" x-cloak class="fixed inset-0 z-50 sm:hidden" role="dialog" aria-modal="true" aria-label="{{ __('Menu') }}">
-                            <div
-                                x-show="open"
-                                x-transition:enter="transition-opacity duration-200 ease-out"
-                                x-transition:enter-start="opacity-0"
-                                x-transition:leave="transition-opacity duration-150 ease-in"
-                                x-transition:leave-end="opacity-0"
-                                x-on:click="open = false"
-                                class="absolute inset-0 bg-black/50"
-                            ></div>
+                        <template x-teleport="body">
+                            <div x-show="open" x-cloak class="fixed inset-0 z-50 sm:hidden" role="dialog" aria-modal="true" aria-label="{{ __('Menu') }}">
+                                <div
+                                    x-show="open"
+                                    x-transition:enter="transition-opacity duration-200 ease-out"
+                                    x-transition:enter-start="opacity-0"
+                                    x-transition:leave="transition-opacity duration-150 ease-in"
+                                    x-transition:leave-end="opacity-0"
+                                    x-on:click="open = false"
+                                    class="absolute inset-0 bg-black/50"
+                                ></div>
 
-                            <nav
-                                id="site-menu-sidebar"
-                                x-show="open"
-                                x-trap.noscroll.inert="open"
-                                x-transition:enter="transition-transform duration-200 ease-out"
-                                x-transition:enter-start="translate-x-full"
-                                x-transition:enter-end="translate-x-0"
-                                x-transition:leave="transition-transform duration-150 ease-in"
-                                x-transition:leave-start="translate-x-0"
-                                x-transition:leave-end="translate-x-full"
-                                class="absolute inset-y-0 right-0 flex w-80 max-w-[85vw] flex-col gap-6 overflow-y-auto border-s border-zinc-200 p-6 shadow-xl dark:border-zinc-700"
-                                data-site-menu-panel
-                                data-test="site-menu-sidebar"
-                            >
-                                <div class="flex items-center justify-between gap-4">
-                                    <x-app-logo href="{{ route('home') }}" />
-                                    <flux:button variant="ghost" size="sm" icon="x-mark" x-on:click="open = false" :aria-label="__('Close menu')" />
-                                </div>
+                                <nav
+                                    id="site-menu-sidebar"
+                                    x-show="open"
+                                    x-trap.noscroll.inert="open"
+                                    x-transition:enter="transition-transform duration-200 ease-out"
+                                    x-transition:enter-start="translate-x-full"
+                                    x-transition:enter-end="translate-x-0"
+                                    x-transition:leave="transition-transform duration-150 ease-in"
+                                    x-transition:leave-start="translate-x-0"
+                                    x-transition:leave-end="translate-x-full"
+                                    class="absolute inset-y-0 right-0 flex w-80 max-w-[85vw] flex-col gap-6 overflow-y-auto border-s border-zinc-200 p-6 shadow-xl dark:border-zinc-700"
+                                    data-site-menu-panel
+                                    data-test="site-menu-sidebar"
+                                >
+                                    <div class="flex items-center justify-between gap-4">
+                                        <x-app-logo href="{{ route('home') }}" />
+                                        <flux:button variant="ghost" size="sm" icon="x-mark" x-on:click="open = false" :aria-label="__('Close menu')" />
+                                    </div>
 
-                                <flux:navlist :aria-label="__('Menu')">
-                                    @foreach ($mainMenu as $link)
-                                        <flux:navlist.item :href="$link->url()" :icon="$link->iconName()" :current="$link->isCurrent()" :target="$link->opensInNewTab() ? '_blank' : null" :rel="$link->opensInNewTab() ? 'noopener' : null">{{ $link->text() }}</flux:navlist.item>
-                                    @endforeach
-                                </flux:navlist>
-                            </nav>
-                        </div>
-                    </template>
-                </div>
-            @endif
+                                    <flux:navlist :aria-label="__('Menu')">
+                                        @foreach ($mainMenu as $link)
+                                            <flux:navlist.item :href="$link->url()" :icon="$link->iconName()" :current="$link->isCurrent()" :target="$link->opensInNewTab() ? '_blank' : null" :rel="$link->opensInNewTab() ? 'noopener' : null">{{ $link->text() }}</flux:navlist.item>
+                                        @endforeach
+                                    </flux:navlist>
+                                </nav>
+                            </div>
+                        </template>
+                    </div>
+                @endif
+            </div>
         </flux:header>
 
 

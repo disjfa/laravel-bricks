@@ -1,7 +1,7 @@
 <div class="space-y-6">
     <div class="flex flex-wrap items-center justify-between gap-4">
         <div>
-            <flux:heading size="xl" level="1">{{ __('Forms') }}</flux:heading>
+            <x-admin.heading icon="queue-list">{{ __('Forms') }}</x-admin.heading>
             <flux:text class="mt-1">{{ __('Build forms and place them on a page with the form brick.') }}</flux:text>
         </div>
 

@@ -39,7 +39,7 @@ new #[Layout('layouts::admin'), Title('Admin')] class extends Component {
 
 <div class="space-y-6">
     <div>
-        <flux:heading size="xl" level="1">{{ __('Dashboard') }}</flux:heading>
+        <x-admin.heading icon="home">{{ __('Dashboard') }}</x-admin.heading>
         <flux:text class="mt-1">{{ __('Welcome back, :name.', ['name' => auth()->user()->name]) }}</flux:text>
     </div>
 

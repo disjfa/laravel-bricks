@@ -11,16 +11,20 @@
 
 <x-admin.content-screen :model="$model" current="content" save="save" columns>
     {{-- Canvas --}}
-    <x-admin.screen.column class="space-y-2">
+    {{-- Scrolls along with a brick moved with the up and down buttons (EditsBricks::moveBrick()). --}}
+    <x-admin.screen.column
+        class="space-y-2"
+        x-on:brick-moved.window="$nextTick(() => document.getElementById('brick-' + $event.detail.key)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }))"
+    >
         <div wire:sort="sortBrick" class="space-y-2">
             @foreach ($bricks as $index => $brick)
                 @php($type = $registry->find($brick['type']))
 
                 {{-- The key includes the position: the inputs bind to their position (like bricks.0.label), so a moved brick is rendered fresh with the right bindings. --}}
-                <div wire:key="brick-{{ $brick['key'] }}-{{ $index }}" wire:sort:item="{{ $brick['key'] }}" class="group/brick">
+                <div wire:key="brick-{{ $brick['key'] }}-{{ $index }}" wire:sort:item="{{ $brick['key'] }}" id="brick-{{ $brick['key'] }}" class="group/brick scroll-mt-4 scroll-mb-28">
                     <flux:card class="space-y-4 p-4! transition group-hover/brick:ring-2 group-hover/brick:ring-zinc-200 dark:group-hover/brick:ring-zinc-600">
                         <div class="flex items-center gap-2">
-                            <div wire:sort:handle class="cursor-grab text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200" title="{{ __('Drag to reorder') }}">
+                            <div wire:sort:handle class="cursor-n-resize text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200" title="{{ __('Drag to reorder') }}">
                                 <flux:icon name="bars-2" variant="micro" />
                             </div>
 
@@ -111,8 +115,8 @@
             </div>
         @endif
 
-        {{-- Sticky at the bottom of the canvas column, so adding is always one click away. --}}
-        <div class="sticky bottom-0 z-10 -mx-4 -mb-4 flex justify-center bg-linear-to-t from-(--site-background) from-60% to-transparent px-4 pt-8 pb-4">
+        {{-- Sticky at the bottom of the canvas column, so adding is always one click away. -bottom-4 reaches past the padding of the column. --}}
+        <div class="sticky -bottom-4 z-10 -mx-4 -mb-4 flex justify-center bg-linear-to-t from-(--site-background) from-60% to-transparent px-4 pt-8 pb-4">
             @include('bricks.editor.inserter', ['position' => null, 'compact' => false])
         </div>
     </x-admin.screen.column>

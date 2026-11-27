@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\ColorScheme;
+use App\Enums\SiteCorners;
 use App\Enums\ThemeColor;
 use App\Features\Blogs;
 use App\Features\Forms;
@@ -60,6 +61,36 @@ describe('as admin', function () {
             ->assertSee('--color-accent: #1d4ed8;', false)
             ->assertSee('--site-menubar-background: #000000;', false);
     });
+
+    it('saves how rounded the corners are, starting at medium', function () {
+        Livewire::test('pages::admin.settings')
+            ->assertSet('corners', 'medium')
+            ->assertSeeHtml('data-flux-radio-group-segmented')
+            ->set('corners', 'small')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        expect(app(ThemeSettings::class)->corners())->toBe(SiteCorners::Small);
+    });
+
+    it('rejects unknown corners', function () {
+        Livewire::test('pages::admin.settings')
+            ->set('corners', 'wobbly')
+            ->call('save')
+            ->assertHasErrors(['corners']);
+    });
+
+    it('scales the radius sizes on the website with the corners', function (string $corners, string $radiusLg) {
+        updateSettings(ThemeSettings::class, ['corners' => $corners]);
+
+        $this->get('/')
+            ->assertSee('--radius-lg: '.$radiusLg.';', false);
+    })->with([
+        'none' => ['square', '0rem'],
+        'small' => ['small', '0.05rem'],
+        'medium' => ['medium', '0.25rem'],
+        'large' => ['large', '0.5rem'],
+    ]);
 
     it('rejects a color that is not a hex color', function (string $value) {
         Livewire::test('pages::admin.settings')

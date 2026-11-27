@@ -85,6 +85,20 @@ describe('editor', function () {
         expect($page->bricks()->pluck('id')->all())->toBe([$third->id, $first->id]);
     });
 
+    it('moves a brick down and tells the editor to scroll along with it', function () {
+        $page = Page::factory()->create();
+        Brick::factory()->for($page, 'brickable')->heading('First')->create(['position' => 0]);
+        Brick::factory()->for($page, 'brickable')->heading('Second')->create(['position' => 1]);
+
+        $component = Livewire::test('pages::admin.pages.edit', ['page' => $page]);
+        $firstKey = $component->get('bricks.0.key');
+
+        $component
+            ->call('moveBrick', $firstKey, 1)
+            ->assertSet('bricks.1.key', $firstKey)
+            ->assertDispatched('brick-moved', key: $firstKey);
+    });
+
     it('rejects a brick that is missing required content', function () {
         $page = Page::factory()->create();
 
@@ -96,19 +110,20 @@ describe('editor', function () {
         expect($page->bricks()->count())->toBe(0);
     });
 
-    it('saves the brick settings, starting at the normal width', function () {
+    it('saves the brick settings, starting at the normal width and left aligned', function () {
         $page = Page::factory()->create();
 
         Livewire::test('pages::admin.pages.edit', ['page' => $page])
             ->call('addBrick', 'heading')
-            ->assertSet('bricks.0.settings', ['width' => 'normal'])
+            ->assertSet('bricks.0.settings', ['width' => 'normal', 'align' => 'start'])
             ->assertSeeHtml('data-test="brick-settings-button"')
             ->set('bricks.0.data.text', 'Welcome')
             ->set('bricks.0.settings.width', 'full')
+            ->set('bricks.0.settings.align', 'center')
             ->call('save')
             ->assertHasNoErrors();
 
-        expect($page->bricks()->sole()->settings)->toBe(['width' => 'full']);
+        expect($page->bricks()->sole()->settings)->toBe(['width' => 'full', 'align' => 'center']);
     });
 
     it('rejects an unknown width', function () {
@@ -124,7 +139,38 @@ describe('editor', function () {
         Brick::factory()->for($page, 'brickable')->create(['settings' => null]);
 
         Livewire::test('pages::admin.pages.edit', ['page' => $page])
-            ->assertSet('bricks.0.settings', ['width' => 'normal']);
+            ->assertSet('bricks.0.settings', ['width' => 'normal', 'align' => 'start']);
+    });
+
+    it('saves the alignment of a text brick, starting at the left', function () {
+        $page = Page::factory()->create();
+
+        Livewire::test('pages::admin.pages.edit', ['page' => $page])
+            ->call('addBrick', 'text')
+            ->assertSet('bricks.0.settings.align', 'start')
+            ->set('bricks.0.data.body', 'Hello')
+            ->set('bricks.0.settings.align', 'center')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        expect($page->bricks()->sole()->settings)->toBe(['width' => 'normal', 'align' => 'center']);
+    });
+
+    it('shows the width and alignment settings as segmented controls', function () {
+        Livewire::test('pages::admin.pages.edit', ['page' => Page::factory()->create()])
+            ->call('addBrick', 'text')
+            ->assertSeeHtml('wire:model.live="bricks.0.settings.width"')
+            ->assertSeeHtml('wire:model.live="bricks.0.settings.align"')
+            ->assertSeeHtml('data-flux-radio-group-segmented');
+    });
+
+    it('rejects an unknown alignment', function () {
+        Livewire::test('pages::admin.pages.edit', ['page' => Page::factory()->create()])
+            ->call('addBrick', 'text')
+            ->set('bricks.0.data.body', 'Hello')
+            ->set('bricks.0.settings.align', 'diagonal')
+            ->call('save')
+            ->assertHasErrors(['bricks.0.settings.align']);
     });
 
     it('rejects javascript links in bricks', function () {

@@ -34,4 +34,11 @@ class HeadingBrick extends BaseBrick
             Select::make('level')->label(__('Level'))->required()->options([1 => 'H1', 2 => 'H2', 3 => 'H3', 4 => 'H4']),
         ];
     }
+
+    protected function extraSettings(): array
+    {
+        return [
+            $this->alignSetting(),
+        ];
+    }
 }

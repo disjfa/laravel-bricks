@@ -1,4 +1,4 @@
-<x-admin.screen :title="__('Settings')" save="save">
+<x-admin.screen :title="__('Settings')" icon="cog-6-tooth" save="save">
     <form wire:submit="save" class="space-y-10">
         {{-- Site --}}
         <section class="space-y-4">
@@ -116,6 +116,14 @@
                 <flux:button size="sm" variant="ghost" icon="arrow-uturn-left" wire:click="resetTheme">{{ __('Reset to defaults') }}</flux:button>
             </div>
 
+            <flux:card>
+                <flux:radio.group wire:model.live="corners" :label="__('Corners')" :description:trailing="__('How rounded the cards, images, buttons and fields on the website are. The previews below show it.')" variant="segmented" data-test="corners">
+                    @foreach (App\Enums\SiteCorners::cases() as $cornersOption)
+                        <flux:radio :value="$cornersOption->value" :label="$cornersOption->label()" />
+                    @endforeach
+                </flux:radio.group>
+            </flux:card>
+
             <div class="grid gap-6 lg:grid-cols-2">
                 @foreach (App\Enums\ColorScheme::cases() as $scheme)
                     @php($colors = $theme[$scheme->value])
@@ -124,7 +132,7 @@
                         <flux:heading>{{ $scheme->label() }}</flux:heading>
 
                         {{-- A small preview of the site with these colors --}}
-                        <div class="overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-700" style="background-color: {{ $colors['background'] }}; color: {{ $colors['text'] }}" data-test="theme-preview-{{ $scheme->value }}">
+                        <div class="overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-700" style="{{ App\Enums\SiteCorners::tryFrom($corners)?->style() }} background-color: {{ $colors['background'] }}; color: {{ $colors['text'] }}" data-test="theme-preview-{{ $scheme->value }}">
                             <div class="flex items-center gap-4 px-4 py-3 text-sm font-medium" style="background-color: {{ $colors['menubar_background'] }}; color: {{ $colors['menubar_text'] }}">
                                 <span>{{ $siteTitle ?: config('app.name') }}</span>
                                 <span class="ms-auto">{{ __('Home') }}</span>
