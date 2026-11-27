@@ -70,9 +70,10 @@ The project uses [Laravel Boost](https://laravel.com/docs/boost) to give AI agen
 - `.ai/rules/` holds rules for specific folders, with `.ai/rules/index.md` mapping folders to rules.
 - `boost.json` lists the agents, packages and skills Boost sets up.
 
-`composer setup` runs `php artisan boost:update`, which writes the files your agent reads (`AGENTS.md`,
-`CLAUDE.md`, skills and the MCP server config). Those are generated and not committed. To set it up for an agent
-that is not in `boost.json` yet, run `php artisan boost:install`.
+`AGENTS.md` is generated from those files and committed, so every agent that opens the repository reads the rules.
+`composer setup` runs `php artisan boost:update`, which also writes the skills and the MCP server config for your
+machine; those are not committed. To set it up for an agent that is not in `boost.json` yet, run
+`php artisan boost:install`.
 
-To change a rule, edit the files in `.ai/` and run `php artisan boost:update` (and `php artisan boost:index-rules`
-after adding a rule file).
+To change a rule, edit the files in `.ai/`, run `php artisan boost:update` (and `php artisan boost:index-rules` after
+adding a rule file) and commit the updated `AGENTS.md` with it.
